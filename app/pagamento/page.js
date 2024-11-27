@@ -156,30 +156,7 @@ export default function PaymentScreen() {
           Selecione o seu banco:
         </h3>
 
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          {banks.map((bank) => (
-            <motion.button
-              key={bank.id}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setSelectedBank(bank)}
-              className={`flex flex-col items-center p-2 rounded-lg transition ${
-                selectedBank?.id === bank.id 
-                  ? 'border-2 border-orange-500 bg-orange-50' 
-                  : 'hover:bg-orange-100'
-              }`}
-            >
-              <Image 
-                src={bank.img} 
-                alt={bank.name} 
-                width={60} 
-                height={60} 
-                className="rounded-full mb-2"
-              />
-              <p className="text-xs text-gray-700">{bank.name}</p>
-            </motion.button>
-          ))}
-        </div>
+    
 
         <div className="mb-6">
           <label 
@@ -205,9 +182,9 @@ export default function PaymentScreen() {
 
         <button 
           onClick={generateTicket}
-          disabled={!selectedBank || !pdfFile}
+          disabled={!pdfFile}
           className={`w-full py-3 rounded-lg transition ${
-            selectedBank && pdfFile
+             pdfFile
               ? 'bg-orange-500 text-white hover:bg-orange-600'
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
