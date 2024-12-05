@@ -31,7 +31,7 @@ function PaymentScreenContent() {
   const [comprovativoErro, setComprovativoErro] = useState(false);
   const fileInputRef = useRef(null);
 
-  const IBAN = 'AO06.0055.0000.1009.6480.1012.9';
+  const IBAN = '0055.0000.1009.6480.1012.9';
 
 
   const confirmBooking = async () => {
