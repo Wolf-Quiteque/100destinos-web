@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import BusTicketLoader from '../components/BusTicketLoader';
 
-export default function BookingDetailsPage() {
+function BookingDetailsContent() {
   const supabase = createClientComponentClient();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -193,7 +193,7 @@ export default function BookingDetailsPage() {
           </div>
         </div>
 
-          <div className="text-center">
+        <div className="text-center">
           <button 
             onClick={() =>router.push(`/pagamento?bookingId=${bookingId}`)}
             className="w-full max-w-md mx-auto px-8 py-4 bg-orange-600 text-white text-xl font-bold rounded-full hover:bg-orange-700 transition-colors flex items-center justify-center"
@@ -203,5 +203,13 @@ export default function BookingDetailsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function BookingDetailsPage() {
+  return (
+    <Suspense fallback={<BusTicketLoader />}>
+      <BookingDetailsContent />
+    </Suspense>
   );
 }

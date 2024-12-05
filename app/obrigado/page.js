@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { 
   Check, 
   MapPin, 
@@ -7,10 +7,11 @@ import {
   Bus, 
   Download 
 } from 'lucide-react';
-import  generatePassengerTickets from '../pagamento/generatePassengerTickets';
+import generatePassengerTickets from '../pagamento/generatePassengerTickets';
 import { useRouter, useSearchParams } from 'next/navigation';
+import BusTicketLoader from '../components/BusTicketLoader';
 
-const ThankYouScreen = () => {
+function ThankYouScreenContent() {
   const searchParams = useSearchParams();
 
   const [animationStage, setAnimationStage] = useState(0);
@@ -62,7 +63,6 @@ const ThankYouScreen = () => {
       await generatePassengerTickets(bookingId)
       router.push("/pesquisar")
   } 
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-orange-800 overflow-hidden relative flex items-center justify-center p-4">
@@ -180,6 +180,12 @@ const ThankYouScreen = () => {
       ))}
     </div>
   );
-};
+}
 
-export default ThankYouScreen;
+export default function ThankYouScreen() {
+  return (
+    <Suspense fallback={<BusTicketLoader />}>
+      <ThankYouScreenContent />
+    </Suspense>
+  );
+}

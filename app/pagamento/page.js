@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import BusTicketLoader from '../components/BusTicketLoader';
 
-export default function PaymentScreen() {
+function PaymentScreenContent() {
   const supabase = createClientComponentClient();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -335,5 +335,13 @@ export default function PaymentScreen() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function PaymentScreen() {
+  return (
+    <Suspense fallback={<BusTicketLoader />}>
+      <PaymentScreenContent />
+    </Suspense>
   );
 }
