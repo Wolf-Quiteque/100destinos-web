@@ -5,13 +5,18 @@ import {
   MapPin, 
   Ticket, 
   Bus, 
-  ArrowRight 
+  Download 
 } from 'lucide-react';
+import  generatePassengerTickets from '../pagamento/generatePassengerTickets';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-const ThankYouScreen = ({  onContinue }) => {
+const ThankYouScreen = () => {
+  const searchParams = useSearchParams();
+
   const [animationStage, setAnimationStage] = useState(0);
+  const bookingId = searchParams.get('bookingId');
 
-  
+  const router = useRouter()
   const ticket = {
     id: 1,
     company: 'Huambo Expresse',
@@ -51,6 +56,13 @@ const ThankYouScreen = ({  onContinue }) => {
       setTimeout(stage, (index + 1) * 500);
     });
   }, []);
+
+  const Downloadpdf = async () =>{
+    console.log(bookingId)
+      await generatePassengerTickets(bookingId)
+      router.push("/pesquisar")
+  } 
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-orange-800 overflow-hidden relative flex items-center justify-center p-4">
@@ -136,7 +148,7 @@ const ThankYouScreen = ({  onContinue }) => {
 
         {/* Continue Button */}
         <button 
-          onClick={onContinue}
+          onClick={Downloadpdf}
           className={`
             mt-6 mx-auto flex items-center justify-center 
             px-8 py-4 bg-orange-600 text-white text-xl 
@@ -145,7 +157,7 @@ const ThankYouScreen = ({  onContinue }) => {
             ${animationStage >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
           `}
         >
-          Continuar <ArrowRight className="ml-2" />
+          Baixar Comprativo <Download className="ml-2" />
         </button>
       </div>
 

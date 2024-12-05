@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -7,7 +7,8 @@ import {
   DialogTitle, 
   DialogDescription 
 } from "@/components/ui/dialog";
-
+import { useRouter } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Button } from "@/components/ui/button";
 import { 
   UserPlus, 
@@ -15,32 +16,89 @@ import {
   User, 
   IdCard, 
   Calendar, 
-  Users 
+  Users,
+  ArrowRight 
 } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast"
+import BusSeatLayout from './SeatSelectionPopup';
+import SeatSelectionPopup from './SeatSelectionPopup';
 
 const PassengerModal = ({ 
   isOpen, 
   onClose, 
-  onConfirm 
+  ticket 
 }) => {
+  const supabase = createClientComponentClient();
+  const router = useRouter();
+  const { toast } = useToast()
+
   const [passengers, setPassengers] = useState([
     { 
       name: '', 
       age: '', 
       sex: '', 
-      idNumber: '' 
+      idNumber: '',
     }
   ]);
 
+  const [contactInfo, setContactInfo] = useState({
+    email: '',
+    phone: ''
+  });
+
+  const [availableSeats, setAvailableSeats] = useState([]);
+  const [selectedSeats, setSelectedSeats] = useState([]);
+
+  // Fetch available seats when modal opens
+  useEffect(() => {
+    const fetchAvailableSeats = async () => {
+      if (isOpen && ticket) {
+        try {
+          const { data, error } = await supabase
+            .from('route_seat_availability')
+            .select('*')
+            .eq('route_id', ticket.id)
+            .single();
+
+          if (error) throw error;
+           console.log(data)
+          // Generate list of available seats
+          const totalSeats = ticket.total_seats;
+          const bookedSeats = data.booked_seat_numbers || [];
+          const available = Array.from({length: totalSeats}, (_, i) => `${i + 1}`)
+            .filter(seat => !bookedSeats.includes(seat));
+
+          setAvailableSeats(available);
+        } catch (error) {
+          console.error('Error fetching available seats:', error);
+        }
+      }
+    };
+
+    
+  }, [isOpen, ticket]);
+
   const addPassenger = () => {
-    setPassengers([
-      ...passengers, 
-      { name: '', age: '', sex: '', idNumber: '' }
-    ]);
+    if (passengers.length < 20) {
+      setPassengers([
+        ...passengers, 
+        { name: '', age: '', sex: '', idNumber: ''}
+      ]);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Número máximo de passageiros atingido",
+      })
+    }
   };
 
   const removePassenger = (indexToRemove) => {
-    setPassengers(passengers.filter((_, index) => index !== indexToRemove));
+    const newPassengers = passengers.filter((_, index) => index !== indexToRemove);
+    const newSelectedSeats = selectedSeats.filter((_, index) => index !== indexToRemove);
+    
+    setPassengers(newPassengers);
+    setSelectedSeats(newSelectedSeats);
   };
 
   const updatePassenger = (index, field, value) => {
@@ -49,33 +107,123 @@ const PassengerModal = ({
     setPassengers(newPassengers);
   };
 
-  const handleConfirm = () => {
-    // Basic validation
+  const selectSeat = (seatNumber) => {
+    // If seat already selected, deselect
+    if (selectedSeats.includes(seatNumber)) {
+      setSelectedSeats(selectedSeats.filter(seat => seat !== seatNumber));
+      
+      // Remove seat from corresponding passenger
+      const newPassengers = passengers.map(p => 
+        p.seat === seatNumber ? {...p, seat: null} : p
+      );
+      setPassengers(newPassengers);
+      return;
+    }
+  
+    // Find the next passenger without a seat
+    const unassignedPassengerIndex = passengers.findIndex(p => p.seat === null);
+    
+    // If all seats assigned, show error
+    if (unassignedPassengerIndex === -1) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Todos os assentos já foram selecionados",
+      });
+      return;
+    }
+  
+    // Check if seat is available
+    if (!availableSeats.includes(seatNumber)) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Assento não disponível",
+      });
+      return;
+    }
+  
+    const newPassengers = [...passengers];
+    newPassengers[unassignedPassengerIndex].seat = seatNumber;
+    
+    setPassengers(newPassengers);
+    setSelectedSeats([...selectedSeats, seatNumber]);
+  };
+  const handleConfirm = async () => {
+    // Validation
     const isValid = passengers.every(p => 
       p.name && p.age && p.sex && p.idNumber
     );
 
-    if (isValid) {
-    
-      onClose();
-    } else {
-      alert('Por favor, preencha todos os campos dos passageiros.');
+    localStorage.setItem('lastBookingTicket', JSON.stringify(ticket));
+    localStorage.setItem('lastBookingPassengers', JSON.stringify(passengers));
+    localStorage.setItem('lastBookingContactInfo', JSON.stringify(contactInfo));
+
+    if (!isValid) {
+      toast({
+        variant: "destructive",
+        title: "Atenção",
+        description: "Por favor, preencha todos os campos e selecione assentos",
+      })
+      return;
+    }
+
+    try {
+      const bookingResult = await supabase.rpc('book_seats', {
+        route_id_param: ticket.id,
+        booking_date_param: new Date().toISOString().split('T')[0],
+        passengers_param: JSON.stringify(passengers),
+        total_passengers_param: passengers.length,
+        selected_seats_param: JSON.stringify(selectedSeats),
+        contact_email_param: contactInfo.email,
+        contact_phone_param: contactInfo.phone
+      });
+
+      // Navigate to booking details page
+      router.push(`/detalhes?bookingId=${bookingResult.data}`);
+    } catch (error) {
+      console.error('Booking error:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro na Reserva",
+        description: "Erro ao fazer reserva. Tente novamente.",
+      })
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md md:max-w-[600px] lg:max-w-[600px] bg-gray-900 border-orange-500/30">
+      <DialogContent className="max-w-2xl bg-gray-900 border-orange-500/30">
         <DialogHeader className="text-white">
           <DialogTitle className="text-2xl font-bold text-orange-500 flex items-center">
             <User className="mr-2" /> Informações dos Passageiros
           </DialogTitle>
           <DialogDescription className="text-gray-400">
-            Adicione os detalhes de todos os passageiros para a sua viagem
+            Selecione assentos e adicione detalhes dos passageiros
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 max-h-[450px] overflow-y-auto pr-2">
+        {/* Contact Information */}
+        <div className="grid md:grid-cols-2 gap-4 mb-4">
+          <input 
+            type="email"
+            placeholder="Email de Contato"
+            value={contactInfo.email}
+            onChange={(e) => setContactInfo({...contactInfo, email: e.target.value})}
+            className="w-full bg-gray-700 text-white border-none rounded-lg focus:ring-2 focus:ring-orange-500 transition-all"
+          />
+          <input 
+            type="tel"
+            placeholder="Número de Telefone"
+            value={contactInfo.phone}
+            onChange={(e) => setContactInfo({...contactInfo, phone: e.target.value})}
+            className="w-full bg-gray-700 text-white border-none rounded-lg focus:ring-2 focus:ring-orange-500 transition-all"
+          />
+        </div>
+
+
+        {/* Passenger Details */}
+        <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
           {passengers.map((passenger, index) => (
             <div 
               key={index} 
@@ -144,6 +292,12 @@ const PassengerModal = ({
                     className="w-full bg-gray-700 text-white border-none rounded-lg focus:ring-2 focus:ring-orange-500 transition-all"
                   />
                 </div>
+
+                {passenger.seat && (
+                  <div className="col-span-2 text-white">
+                    <span className="text-orange-500">Assento Selecionado:</span> {passenger.seat}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -162,7 +316,7 @@ const PassengerModal = ({
             onClick={handleConfirm}
             className="bg-orange-600 hover:bg-orange-700 text-white flex items-center"
           >
-            Confirmar Passageiros
+            Confirmar Reserva
           </Button>
         </div>
       </DialogContent>

@@ -1,119 +1,202 @@
-"use client"
-import React, { useState, useRef } from 'react';
+'use client'
+import React, { useState, useEffect, useRef } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   CreditCard, 
   Copy, 
   Upload, 
   CheckCircle, 
+  UserCheck,
   FileText, 
-  ArrowLeft 
+  Loader2,
+  ArrowLeft,
+  AlertCircle
 } from 'lucide-react';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { useToast } from "@/hooks/use-toast"
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import BusTicketLoader from '../components/BusTicketLoader';
 
-const PaymentScreen = ({ onBack }) => {
+export default function PaymentScreen() {
+  const supabase = createClientComponentClient();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const bookingId = searchParams.get('bookingId');
+  const { toast } = useToast();
 
-
-
-  const ticket = {
-    id: 1,
-    company: 'Huambo Expresse',
-    origin: 'Luanda',
-    destination: 'Huambo',
-    departureTime: '08:00',
-    arrivalTime: '16:30',
-    price: 4500,
-    duration: '8h 30m',
-    availableSeats: 12
-  };
-  
-  // Dummy Passengers Data
-  const passengers = [
-    {
-      name: 'João Silva Santos',
-      age: 35,
-      sex: 'M',
-      idNumber: '001234567LA048'
-    },
-    {
-      name: 'Maria Conceição Pereira',
-      age: 28,
-      sex: 'F',
-      idNumber: '009876543LB052'
-    }
-  ];
-
+  const [bookingDetails, setBookingDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [uploadedFile, setUploadedFile] = useState(null);
-  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const [comprovativoErro, setComprovativoErro] = useState(false);
   const fileInputRef = useRef(null);
 
-  const IBAN = 'AO06 0044 0000 5533 2295 1014 4';
-  const totalPrice = ticket.price * passengers.length;
+  const IBAN = 'AO06.0055.0000.1009.6480.1012.9';
 
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    
-    if (file) {
-      if (file.type !== 'application/pdf') {
-        alert('Por favor, carregue apenas arquivos PDF');
+
+  const confirmBooking = async () => {
+    if (!bookingId) return;
+  
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ booking_status: 'confirmed' })
+        .eq('id', bookingId);
+  
+      if (error) throw error;
+  
+      toast({
+        title: "Pagamento Confirmado",
+        description: "O seu bilhete foi confirmado com sucesso.",
+      });
+  
+      router.push("/obrigado");
+    } catch (error) {
+      console.error('Error confirming booking:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro de Confirmação",
+        description: "Não foi possível confirmar o pagamento. Por favor, tente novamente.",
+      });
+    }
+  };
+
+  useEffect(() => {
+    const fetchBookingDetails = async () => {
+      if (!bookingId) {
+        router.push('/bilhetes');
         return;
       }
 
-      if (file.size > 2 * 1024 * 1024) {
-        alert('O arquivo não pode ser maior que 2MB');
-        return;
+      try {
+        const { data, error } = await supabase
+          .from('bookings')
+          .select('*')
+          .eq('id', bookingId)
+          .single();
+
+        if (error) throw error;
+        setBookingDetails(data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching booking details:', error);
+        router.push('/bilhetes');
+      }
+    };
+
+    fetchBookingDetails();
+  }, [bookingId, router, supabase]);
+
+  const handleFileUpload = async (e) => {
+    await confirmBooking()
+    router.push(`/obrigado?bookingId=${bookingId}`);
+            
+    return;
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    const maxSize = 1 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast({
+        variant: "destructive",
+        title: "Ficheiro Grande",
+        description: "O documento selecionado é muito grande. Por favor, selecione um arquivo menor que 1 MB.",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('https://verifica-jet.vercel.app/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const jsonResponse = await response.json();
+      const comprovativoText = jsonResponse.text.replace(/\n/g, ' ').replace(/\s+/g, '');
+
+      if (jsonResponse.original) {
+        const Total = '1';
+        const hasTotal = jsonResponse.text.includes(100 + ',00');
+        const hasReference = [
+          "AO06.0055.0000.1009.6480.1012.9",
+          "AO06 0055 0000 1009 6480 1012 9",
+          "AO06005500001009648010129",
+          "0055.0000.1009.6480.1012.9",
+          "0055 0000 1009 6480 1012 9",
+          "005500001009648010129"
+        ].some(ref => jsonResponse.text.includes(ref));
+
+        if (hasTotal && hasReference) {
+          const verificationResponse = await fetch(
+            'https://glab-api.vercel.app/api/aef/comprovativos',
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ data: comprovativoText })
+            }
+          );
+
+          if (verificationResponse.ok) {
+            const data = await verificationResponse.json();
+            
+            if (!data.length > 0) {
+              await fetch(
+                'https://glab-api.vercel.app/api/aef/add',
+                {
+                  method: 'POST',
+                  headers: { 'Content-Type ': 'application/json' },
+                  body: JSON.stringify({ data: comprovativoText })
+                }
+              );
+              router.push(`/obrigado?bookingId=${bookingId}`);
+            
+              return;
+            }
+          }
+        }
       }
 
-      setUploadedFile(file);
+      setComprovativoErro(true);
+    } catch (error) {
+      console.error('Erro:', error);
+      toast({
+        variant: "destructive",
+        title: "Ficheiro",
+        description: "Erro ao processar o documento. Por favor, tente novamente.",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   const copyIBAN = () => {
     navigator.clipboard.writeText(IBAN);
-    alert('IBAN copiado com sucesso!');
-  };
-
-  const generateReceipt = () => {
-    const doc = new jsPDF();
-    
-    // Title and Company Details
-    doc.setFontSize(18);
-    doc.text('Comprovativo de Pagamento', 105, 20, { align: 'center' });
-    doc.setFontSize(12);
-    doc.text('Huambo Expresse', 105, 30, { align: 'center' });
-    
-    // Ticket Details
-    doc.setFontSize(10);
-    doc.text(`Origem: ${ticket.origin}`, 20, 50);
-    doc.text(`Destino: ${ticket.destination}`, 20, 60);
-    doc.text(`Data de Partida: ${new Date().toLocaleDateString('pt-AO')}`, 20, 70);
-    
-    // Passenger Details
-    doc.autoTable({
-      startY: 90,
-      head: [['Nome', 'Número de ID', 'Idade']],
-      body: passengers.map(passenger => [
-        passenger.name, 
-        passenger.idNumber, 
-        passenger.age.toString()
-      ]),
-      theme: 'striped'
+    toast({
+      title: "IBAN Copiado",
+      description: "O IBAN foi copiado para a área de transferência.",
     });
-
-    // Pricing Details
-    const finalY = doc.lastAutoTable.finalY + 10;
-    doc.text(`Preço por Bilhete: ${ticket.price.toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' })}`, 20, finalY);
-    doc.text(`Número de Passageiros: ${passengers.length}`, 20, finalY + 10);
-    doc.text(`Preço Total: ${totalPrice.toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' })}`, 20, finalY + 20);
-
-    doc.save('Comprovativo_Pagamento.pdf');
   };
+  if (loading) {
+    return <BusTicketLoader />;
+  }
+
+  if (!bookingDetails) {
+    return null;
+  }
+
+  const totalPrice = bookingDetails.total_price;
+  const passengers = JSON.parse(bookingDetails.passengers);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-orange-800 p-4 md:p-8 relative">
-      {/* Back Navigation Button */}
       <button 
-        onClick={onBack}
+        onClick={() => router.back()}
         className="absolute top-4 left-4 md:left-8 z-10 
         text-white bg-gray-800/50 hover:bg-gray-800/70 
         rounded-full p-3 transition-all duration-300 
@@ -123,6 +206,37 @@ const PaymentScreen = ({ onBack }) => {
       </button>
 
       <div className="max-w-4xl mx-auto space-y-6">
+
+                {/* Passenger Details Section */}
+<div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700">
+  <h3 className="text-2xl font-bold text-white flex items-center mb-4">
+    <UserCheck className="mr-2 text-orange-500" /> Detalhes dos Passageiros
+  </h3>
+
+  <div className="space-y-4">
+    {passengers.map((passenger, index) => (
+      <div 
+        key={index} 
+        className="bg-gray-700 rounded-xl p-4 border border-gray-600 hover:border-orange-500 transition-all"
+      >
+        <div className="grid md:grid-cols-2 gap-4 text-white">
+          <div>
+            <p className="text-sm text-gray-400 flex items-center">
+              <UserCheck className="mr-2 text-orange-500" /> Nome Completo
+            </p>
+            <strong>{passenger.name}</strong>
+          </div>
+          <div>
+            <p className="text-sm text-gray-400 flex items-center">
+              <CreditCard className="mr-2 text-orange-500" /> Número de Identificação
+            </p>
+            <strong>{passenger.idNumber}</strong>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
         {/* Payment Details Section */}
         <div className="relative group">
           <div className="absolute -inset-0.5 bg-orange-500 rounded-2xl opacity-50 group-hover:opacity-75 transition duration-300 blur-sm"></div>
@@ -142,6 +256,8 @@ const PaymentScreen = ({ onBack }) => {
                 </strong>
               </div>
               <div>
+                <p className="text-sm text-gray-400">Empresa</p>
+                <strong className="text-lg text-white">ZRD3 CONSULTING</strong>
                 <p className="text-sm text-gray-400">IBAN</p>
                 <div className="flex items-center space-x-2">
                   <strong>{IBAN}</strong>
@@ -156,6 +272,24 @@ const PaymentScreen = ({ onBack }) => {
             </div>
           </div>
         </div>
+
+
+        {comprovativoErro && (
+          <Alert 
+            variant="destructive" 
+            className="bg-red-600 text-white"
+          >
+            <AlertCircle className="h-4 w-4" color='#fff' />
+            <AlertTitle className="text-white">
+              <strong>COMPROVATIVO REJEITADO</strong>
+            </AlertTitle>
+            <AlertDescription className="text-white">
+              <div className="font-medium">
+                Comprovativo falso/duplicado ou <i className="underline">valor não coincide com o plano.</i>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* File Upload Section */}
         <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700">
@@ -188,33 +322,18 @@ const PaymentScreen = ({ onBack }) => {
                 >
                   Carregar PDF
                 </button>
-                <p className="text-sm text-gray-400 mt-2">
-                  Máximo 2MB. Apenas arquivos PDF.
-                </p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Confirmation Button */}
-        <div className="text-center">
-          <button 
-            onClick={() => {
-              if (uploadedFile) {
-                setPaymentConfirmed(true);
-                generateReceipt();
-              } else {
-                alert('Por favor, carregue o comprovativo de pagamento');
-              }
-            }}
-            className="w-full max-w-md mx-auto px-8 py-4 bg-orange-600 text-white text-xl font-bold rounded-full hover:bg-orange-700 transition-colors flex items-center justify-center"
-          >
-            <CreditCard className="mr-3" /> Confirmar Pagamento
-          </button>
-        </div>
+        {/* Loading Indicator */}
+        {loading && (
+          <div className="text-center">
+            <Loader2 className="mx-auto w-8 h-8 animate-spin text-green-600 flex items-center justify-center" />
+          </div>
+        )}
       </div>
     </div>
   );
-};
-
-export default PaymentScreen;
+}
