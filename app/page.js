@@ -25,7 +25,7 @@ const LandingPage = () => {
 
       <main className="flex-grow container mx-auto px-4 grid md:grid-cols-2 items-center gap-8 py-16">
     
-        <div className="space-y-6" style={{marginTop:-150}}>
+        <div className="space-y-6">
           <h2 className="text-4xl font-bold text-gray-800">
             Viaje por Angola com <span className="text-orange-500">100 Destinos</span>
           </h2>
