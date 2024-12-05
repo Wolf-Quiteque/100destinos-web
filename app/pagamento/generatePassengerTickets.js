@@ -54,8 +54,8 @@ const generatePassengerTickets = async (bookingId) => {
 
     // Updated passengers with ticketIds
     const updatedPassengers = passengers.map((passenger, index) => {
-      // Generate unique ticketId for each passenger
-      const ticketId = `7DE${bookingId.slice(-6)}${Math.random().toString(36).substr(2, 3).toUpperCase()}`;
+      
+      const ticketId = `100-ZRD3${bookingId.slice(-6)}${Math.random().toString(36).substr(2, 3).toUpperCase()}`;
       
       // Add ticketId to passenger object
       return {

@@ -88,10 +88,7 @@ function PaymentScreenContent() {
   }, [bookingId, router, supabase]);
 
   const handleFileUpload = async (e) => {
-    await confirmBooking()
-    router.push(`/obrigado?bookingId=${bookingId}`);
-            
-    return;
+   
     const file = e.target.files[0];
 
     if (!file) return;
@@ -121,7 +118,7 @@ function PaymentScreenContent() {
 
       if (jsonResponse.original) {
         const Total = '1';
-        const hasTotal = jsonResponse.text.includes(100 + ',00');
+        const hasTotal = jsonResponse.text.includes(1 + ',00');
         const hasReference = [
           "AO06.0055.0000.1009.6480.1012.9",
           "AO06 0055 0000 1009 6480 1012 9",
@@ -153,6 +150,7 @@ function PaymentScreenContent() {
                   body: JSON.stringify({ data: comprovativoText })
                 }
               );
+              await confirmBooking()
               router.push(`/obrigado?bookingId=${bookingId}`);
             
               return;
