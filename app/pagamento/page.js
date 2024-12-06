@@ -146,10 +146,12 @@ function PaymentScreenContent() {
                 'https://glab-api.vercel.app/api/aef/add',
                 {
                   method: 'POST',
-                  headers: { 'Content-Type ': 'application/json' },
+                  headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ data: comprovativoText })
                 }
               );
+    setLoading(false);
+
               await confirmBooking()
               router.push(`/obrigado?bookingId=${bookingId}`);
             
@@ -283,7 +285,7 @@ function PaymentScreenContent() {
             </AlertTitle>
             <AlertDescription className="text-white">
               <div className="font-medium">
-                Comprovativo falso/duplicado ou <i className="underline">valor não coincide com o plano.</i>
+                Comprovativo falso/duplicado ou <i className="underline">valor não coincide com o montante a.</i>
               </div>
             </AlertDescription>
           </Alert>
