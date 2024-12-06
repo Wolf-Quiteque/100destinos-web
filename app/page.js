@@ -1,62 +1,98 @@
-'use client'
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Truck } from 'lucide-react';
-import Link from 'next/link';
+"use client"
+
+import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { Users, Globe, MapPin } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-const LandingPage = () => {
-  const router = useRouter()
+export default function Home() {
+  const router = useRouter();
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const carouselImages = [
+    'https://picsum.photos/1600/900?random=1',
+    'https://picsum.photos/1600/900?random=2',
+    'https://picsum.photos/1600/900?random=3'
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleImageClick = () => {
+    router.push('/pesquisar');
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      <header className="bg-orange-500 text-white py-4 shadow-md">
-        <div className="container mx-auto flex items-center justify-between px-4">
-          <div className="flex items-center space-x-3">
-            <img src="/img/logo.png"  style={{height:50}}/>
-
-          </div>
-          <nav className="space-x-4">
-            <a href="#" className="hover:text-gray-200">Início</a>
-            <a href="#" className="hover:text-gray-200">Sobre</a>
-            <a href="#" className="hover:text-gray-200">Contacto</a>
-          </nav>
-        </div>
-      </header>
-
-      <main className="flex-grow container mx-auto px-4 grid md:grid-cols-2 items-center gap-8 py-16">
-    
-        <div className="space-y-6">
-          <h2 className="text-4xl font-bold text-gray-800">
-            Viaje por Angola com <span className="text-orange-500">100 Destinos</span>
-          </h2>
-          <p className="text-gray-600 text-lg">
-            Compre bilhetes de autocarro facilmente, conecte-se com as principais províncias de Angola e explore o país com um simples clique.
-          </p>
-          <Button 
-          onClick={()=>{
-              router.push('/pesquisar')
-          }}
-            className="bg-orange-500 hover:bg-orange-600 text-white py-3 px-6 rounded-full text-lg"
+    <div className="relative min-h-screen flex flex-col">
+      {/* Background Carousel */}
+      <div className="absolute inset-0 z-0">
+        {carouselImages.map((img, index) => (
+          <div 
+            key={img}
+            className={`absolute inset-0 transition-opacity duration-1000 ${
+              index === currentSlide ? 'opacity-100' : 'opacity-0'
+            }`}
           >
-            Procurar Viagens
-          </Button>
-        </div>
-        <div>
+            <Image 
+              src={img} 
+              alt={`Carousel image ${index + 1}`}
+              fill
+              style={{ objectFit: 'cover' }}
+              priority
+            />
+          </div>
+        ))}
+        <div className="absolute inset-0 bg-black/50"></div>
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center justify-center flex-grow text-white text-center px-4">
+        {/* Logo Placeholder */}
+        <img 
+          src='/img/logoff.png' 
+          alt="Logo" 
+          className="h-16 mb-4 object-contain w-auto max-w-full"
+        />
+
+        {/* Clickable Image */}
+        <div 
+          onClick={handleImageClick} 
+          className="mb-8 cursor-pointer hover:scale-105 transition-transform w-full max-w-md"
+        >
           <img 
-            src="/img/img4.jpg" 
-            alt="Autocarro de viagem" 
-            className="rounded-lg shadow-2xl"
+            src="/bus.png" 
+            alt="Clickable Image"
+            className="rounded-lg shadow-lg w-full h-auto object-contain"
           />
         </div>
-      </main>
 
-      <footer className="bg-gray-800 text-white py-8">
-        <div className="container mx-auto px-4 text-center">
-          <p>© 2024 100 Destinos. Todos os direitos reservados.</p>
+        {/* Statistics */}
+        <div className="flex flex-wrap justify-center space-x-4 bg-black/50 p-4 rounded-lg max-w-full">
+          <div className="flex items-center space-x-2 mb-2 sm:mb-0">
+            <Users className="text-white" />
+            <span className="text-sm sm:text-base">1,254 Inscritos</span>
+          </div>
+          <div className="flex items-center space-x-2 mb-2 sm:mb-0">
+            <Globe className="text-white" />
+            <span className="text-sm sm:text-base">5,678 Visitantes</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <MapPin className="text-white" />
+            <span className="text-sm sm:text-base">42 Viagens</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="relative z-10 py-4 text-white bg-black/60">
+        <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center px-4">
+          <span className="text-xs sm:text-sm mb-2 sm:mb-0">© 2024 100 Destinos. All Rights Reserved.</span>
+          <span className="text-xs sm:text-sm">by ZRD3</span>
         </div>
       </footer>
     </div>
   );
-};
-
-export default LandingPage;
+}
