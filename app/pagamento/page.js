@@ -285,7 +285,7 @@ function PaymentScreenContent() {
             </AlertTitle>
             <AlertDescription className="text-white">
               <div className="font-medium">
-                Comprovativo falso/duplicado ou <i className="underline">valor não coincide com o montante a.</i>
+                Comprovativo falso/duplicado ou <i className="underline">valor não coincide com o montante a pagar.</i>
               </div>
             </AlertDescription>
           </Alert>

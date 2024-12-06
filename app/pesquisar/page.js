@@ -11,7 +11,7 @@ import Image from 'next/image';
 
 import { useRouter } from 'next/navigation';
 
-import BusTicketLoader from '../components/BusTicketLoader';
+import BustTicketLoaderOld from '../components/BustTicketLoaderold';
 
 
 export default function BusTicketSearch() {
@@ -23,6 +23,7 @@ export default function BusTicketSearch() {
   const [searchAnimationStage, setSearchAnimationStage] = useState(0);
   
   // Image carousel state
+  const [returnDate, setReturnDate] = useState('');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Automatic image carousel effect
@@ -40,8 +41,23 @@ export default function BusTicketSearch() {
   ];
 
   const handleSearch = (e) => {
+
     e.preventDefault();
     // Start the sequential animation
+
+    if (isRoundTrip) {
+      if (!returnDate) {
+        // Optional: Add a toast or alert to inform user to select return date
+        alert('Por favor, selecione a data de retorno');
+        return;
+      }
+      
+      // Optional: Validate that return date is after departure date
+      if (new Date(returnDate) <= new Date(date)) {
+        alert('A data de retorno deve ser posterior à data de partida');
+        return;
+      }
+    }
     startSequentialAnimation();
   };
 
@@ -196,50 +212,75 @@ export default function BusTicketSearch() {
              </select>
            </motion.div>
 
-           {/* Date and Trip Type */}
-           <motion.div 
-             variants={createSequentialSlideVariants()}
-             initial="initial"
-             animate={searchAnimationStage > 3 ? "animate" : "initial"}
-             className="grid grid-cols-2 gap-4"
-           >
-             <div>
-               <label className="block text-black mb-2 flex items-center">
-                 <Calendar className="mr-2 text-orange-500" size={20} />
-                 Date
-               </label>
-               <input 
-                 type="date"
-                 value={date}
-                 onChange={(e) => setDate(e.target.value)}
-                 className="w-full p-3 bg-white/30 backdrop-blur-sm border border-white/30 rounded-xl text-black focus:outline-none focus:ring-2 focus:ring-orange-500"
-                 required
-               />
-             </div>
-             <div>
-               <label className="block text-black mb-2">viagem</label>
-               <div className="flex items-center space-x-4">
-                 <label className="flex items-center text-black">
-                   <input 
-                     type="radio"
-                     checked={!isRoundTrip}
-                     onChange={() => setIsRoundTrip(false)}
-                     className="mr-2 text-orange-500 focus:ring-orange-500"
-                   />
-                   Ida
-                 </label>
-                 <label className="flex items-center text-black">
-                   <input 
-                     type="radio"
-                     checked={isRoundTrip}
-                     onChange={() => setIsRoundTrip(true)}
-                     className="mr-2 text-orange-500 focus:ring-orange-500"
-                   />
-                   Ida & Volta
-                 </label>
-               </div>
-             </div>
-           </motion.div>
+       {/* Date and Trip Type */}
+<motion.div 
+  variants={createSequentialSlideVariants()}
+  initial="initial"
+  animate={searchAnimationStage > 3 ? "animate" : "initial"}
+  className="space-y-4"
+
+
+>
+  {/* Trip Type Selection */}
+  <div className="mb-4 text-center justify-center justify-items-center">
+    <label className="block text-black mb-2">Tipo de Viagem</label>
+    <div className="flex items-center space-x-4">
+      <label className="flex items-center text-black">
+        <input 
+          type="radio"
+          checked={!isRoundTrip}
+          onChange={() => setIsRoundTrip(false)}
+          className="mr-2 text-orange-500 focus:ring-orange-500"
+        />
+        Ida
+      </label>
+      <label className="flex items-center text-black">
+        <input 
+          type="radio"
+          checked={isRoundTrip}
+          onChange={() => setIsRoundTrip(true)}
+          className="mr-2 text-orange-500 focus:ring-orange-500"
+        />
+        Ida & Volta
+      </label>
+    </div>
+  </div>
+
+  {/* Date Selectors */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label className="block text-black mb-2 flex items-center">
+        <Calendar className="mr-2 text-orange-500" size={20} />
+        Data de Partida
+      </label>
+      <input 
+        type="date"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+        min={new Date().toISOString().split('T')[0]} // Sets minimum date to today
+        className="w-full p-3 bg-white/30 backdrop-blur-sm border border-white/30 rounded-xl text-black focus:outline-none focus:ring-2 focus:ring-orange-500"
+        required
+      />
+    </div>
+
+    {isRoundTrip && (
+      <div>
+        <label className="block text-black mb-2 flex items-center">
+          <Calendar className="mr-2 text-orange-500" size={20} />
+          Data de Retorno
+        </label>
+        <input 
+          type="date"
+          value={returnDate || ''}
+          onChange={(e) => setReturnDate(e.target.value)}
+          min={date || new Date().toISOString().split('T')[0]} // Minimum is either the departure date or today
+          className="w-full p-3 bg-white/30 backdrop-blur-sm border border-white/30 rounded-xl text-black focus:outline-none focus:ring-2 focus:ring-orange-500"
+          required={isRoundTrip}
+        />
+      </div>
+    )}
+  </div>
+</motion.div>
 
            {/* Search Button */}
            <motion.button
@@ -258,7 +299,7 @@ export default function BusTicketSearch() {
          </form>
           ) : (
             // Falling Ticket Cards Section
-            <BusTicketLoader />
+            <BustTicketLoaderOld />
           )}
         </motion.div>
       </div>
