@@ -10,8 +10,8 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const carouselImages = [
     'https://picsum.photos/1600/900?random=1',
-    'https://picsum.photos/1600/900?random=2',
-    'https://picsum.photos/1600/900?random=3'
+    'https://picsum.photos/1600/900?random=4',
+    'https://picsum.photos/1600/900?random=2'
   ];
 
   useEffect(() => {
