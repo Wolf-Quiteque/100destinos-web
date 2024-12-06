@@ -11,7 +11,7 @@ import Image from 'next/image';
 
 import { useRouter } from 'next/navigation';
 
-import BustTicketLoaderOld from '../components/BustTicketLoaderold';
+import BustTicketLoaderOld from '../components/BustTicketLoaderOld';
 
 
 export default function BusTicketSearch() {
