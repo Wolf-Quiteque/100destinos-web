@@ -54,6 +54,7 @@ export default function Home() {
         <img 
           src='/img/logoff.png' 
           alt="Logo" 
+          
           className="h-16 mb-4 object-contain w-auto max-w-full"
         />
 
@@ -64,6 +65,7 @@ export default function Home() {
         >
           <img 
             src="/bus.png" 
+            style={{height:100}}
             alt="Clickable Image"
             className="rounded-lg shadow-lg w-full h-auto object-contain"
           />
