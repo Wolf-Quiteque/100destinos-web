@@ -64,6 +64,20 @@ const generatePassengerTickets = async (bookingId) => {
       };
     });
 
+    const displaySelectedSeats = (selectedSeats) => {
+      try {
+        // Parse the JSON string of selected seats
+        const seats = JSON.parse(selectedSeats);
+        
+        // Return the seats as a formatted string
+        return seats.length > 0 
+          ? `Assentos Selecionados: ${seats.join(', ')}` 
+          : 'Nenhum assento selecionado';
+      } catch (error) {
+        console.error('Error parsing selected seats:', error);
+        return 'Erro ao carregar assentos';
+      }
+    };
     // Generate ticket for each passenger in THIS specific booking
     for (let index = 0; index < updatedPassengers.length; index++) {
       const passenger = updatedPassengers[index];
@@ -104,7 +118,8 @@ const generatePassengerTickets = async (bookingId) => {
       doc.text(`Bilhete: ${passenger.ticketId}`, pageWidth / 2, 50, { align: 'center' });
       doc.text('Tipo: Convencional / Normal', pageWidth / 2, 55, { align: 'center' });
       doc.text(`Valor: ${bookingData.total_price.toLocaleString('pt-AO', { minimumFractionDigits: 2 })} kz`, pageWidth / 2, 60, { align: 'center' });
-
+      const selectedSeatsDisplay = displaySelectedSeats(bookingData.selected_seats);
+      doc.text(selectedSeatsDisplay, pageWidth / 2, 65, { align: 'center' });
       // Passenger Details - Centered
       doc.text(`Nome cliente: ${passenger.name}`, pageWidth / 2, 70, { align: 'center' });
       doc.text(`Idade: ${passenger.age}`, pageWidth / 2, 75, { align: 'center' });

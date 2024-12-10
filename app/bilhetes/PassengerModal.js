@@ -20,8 +20,7 @@ import {
   ArrowRight 
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
-import BusSeatLayout from './SeatSelectionPopup';
-import SeatSelectionPopup from './SeatSelectionPopup';
+import BusSeatLayout from './BusSeatLayout';
 
 const PassengerModal = ({ 
   isOpen, 
@@ -38,6 +37,7 @@ const PassengerModal = ({
       age: '', 
       sex: '', 
       idNumber: '',
+      seat: null
     }
   ]);
 
@@ -47,11 +47,13 @@ const PassengerModal = ({
   });
 
   const [availableSeats, setAvailableSeats] = useState([]);
+  const [bookedSeats, setBookedSeats] = useState([]);
   const [selectedSeats, setSelectedSeats] = useState([]);
+  const [isSeatSelectionOpen, setIsSeatSelectionOpen] = useState(false);
 
-  // Fetch available seats when modal opens
+  // Fetch available and booked seats when modal opens
   useEffect(() => {
-    const fetchAvailableSeats = async () => {
+    const fetchSeatAvailability = async () => {
       if (isOpen && ticket) {
         try {
           const { data, error } = await supabase
@@ -61,28 +63,30 @@ const PassengerModal = ({
             .single();
 
           if (error) throw error;
-           console.log(data)
-          // Generate list of available seats
+
           const totalSeats = ticket.total_seats;
-          const bookedSeats = data.booked_seat_numbers || [];
+          const booked = data.booked_seat_numbers || [];
           const available = Array.from({length: totalSeats}, (_, i) => `${i + 1}`)
-            .filter(seat => !bookedSeats.includes(seat));
+            .filter(seat => !booked.includes(seat));
 
           setAvailableSeats(available);
+          setBookedSeats(booked);
         } catch (error) {
-          console.error('Error fetching available seats:', error);
+          console.error('Error fetching seat availability:', error);
         }
       }
     };
 
-    
+    if (isOpen) {
+      fetchSeatAvailability();
+    }
   }, [isOpen, ticket]);
 
   const addPassenger = () => {
     if (passengers.length < 20) {
       setPassengers([
         ...passengers, 
-        { name: '', age: '', sex: '', idNumber: ''}
+        { name: '', age: '', sex: '', idNumber: '', seat: null }
       ]);
     } else {
       toast({
@@ -94,8 +98,10 @@ const PassengerModal = ({
   };
 
   const removePassenger = (indexToRemove) => {
+    const passengerToRemove = passengers[indexToRemove];
+    
     const newPassengers = passengers.filter((_, index) => index !== indexToRemove);
-    const newSelectedSeats = selectedSeats.filter((_, index) => index !== indexToRemove);
+    const newSelectedSeats = selectedSeats.filter(seat => seat !== passengerToRemove.seat);
     
     setPassengers(newPassengers);
     setSelectedSeats(newSelectedSeats);
@@ -108,22 +114,20 @@ const PassengerModal = ({
   };
 
   const selectSeat = (seatNumber) => {
-    // If seat already selected, deselect
-    if (selectedSeats.includes(seatNumber)) {
-      setSelectedSeats(selectedSeats.filter(seat => seat !== seatNumber));
-      
-      // Remove seat from corresponding passenger
+    // If seat is already selected by this passenger, deselect
+    if (passengers.some(p => p.seat === seatNumber)) {
       const newPassengers = passengers.map(p => 
         p.seat === seatNumber ? {...p, seat: null} : p
       );
       setPassengers(newPassengers);
+      setSelectedSeats(selectedSeats.filter(seat => seat !== seatNumber));
       return;
     }
-  
-    // Find the next passenger without a seat
-    const unassignedPassengerIndex = passengers.findIndex(p => p.seat === null);
+
+    // Find the first passenger without a seat
+    const unassignedPassengerIndex = passengers.findIndex(p => !p.seat);
     
-    // If all seats assigned, show error
+    // If no unassigned passengers, show error
     if (unassignedPassengerIndex === -1) {
       toast({
         variant: "destructive",
@@ -132,27 +136,20 @@ const PassengerModal = ({
       });
       return;
     }
-  
-    // Check if seat is available
-    if (!availableSeats.includes(seatNumber)) {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Assento não disponível",
-      });
-      return;
-    }
-  
+
+    // Update passenger with seat
     const newPassengers = [...passengers];
     newPassengers[unassignedPassengerIndex].seat = seatNumber;
     
     setPassengers(newPassengers);
     setSelectedSeats([...selectedSeats, seatNumber]);
+    setIsSeatSelectionOpen(false);
   };
+
   const handleConfirm = async () => {
     // Validation
     const isValid = passengers.every(p => 
-      p.name && p.age && p.sex && p.idNumber
+      p.name && p.age && p.sex && p.idNumber && p.seat
     );
 
     localStorage.setItem('lastBookingTicket', JSON.stringify(ticket));
@@ -192,135 +189,173 @@ const PassengerModal = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-gray-900 border-orange-500/30">
-        <DialogHeader className="text-white">
-          <DialogTitle className="text-2xl font-bold text-orange-500 flex items-center">
-            <User className="mr-2" /> Informações dos Passageiros
-          </DialogTitle>
-          <DialogDescription className="text-gray-400">
-            Selecione assentos e adicione detalhes dos passageiros
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-2xl bg-gray-900 border-orange-500/30">
+          <DialogHeader className="text-white">
+            <DialogTitle className="text-2xl font-bold text-orange-500 flex items-center">
+              <User className="mr-2" /> Informações dos Passageiros
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Selecione assentos e adicione detalhes dos passageiros
+            </DialogDescription>
+          </DialogHeader>
 
-        {/* Contact Information */}
-        <div className="grid md:grid-cols-2 gap-4 mb-4">
-          <input 
-            type="email"
-            placeholder="Email de Contato"
-            value={contactInfo.email}
-            onChange={(e) => setContactInfo({...contactInfo, email: e.target.value})}
-            className="w-full bg-gray-700 text-white border-none rounded-lg focus:ring-2 focus:ring-orange-500 transition-all"
-          />
-          <input 
-            type="tel"
-            placeholder="Número de Telefone"
-            value={contactInfo.phone}
-            onChange={(e) => setContactInfo({...contactInfo, phone: e.target.value})}
-            className="w-full bg-gray-700 text-white border-none rounded-lg focus:ring-2 focus:ring-orange-500 transition-all"
-          />
-        </div>
+          {/* Contact Information */}
+          <div className="grid md:grid-cols-2 gap-4 mb-4">
+            <input 
+              type="email"
+              placeholder="Email de Contato"
+              value={contactInfo.email}
+              onChange={(e) => setContactInfo({...contactInfo, email: e.target.value})}
+              className="w-full bg-gray-700 text-white border-none rounded-lg focus:ring-2 focus:ring-orange-500 transition-all"
+            />
+            <input 
+              type="tel"
+              placeholder="Número de Telefone"
+              value={contactInfo.phone}
+              onChange={(e) => setContactInfo({...contactInfo, phone: e.target.value})}
+              className="w-full bg-gray-700 text-white border-none rounded-lg focus:ring-2 focus:ring-orange-500 transition-all"
+            />
+          </div>
 
-
-        {/* Passenger Details */}
-        <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
-          {passengers.map((passenger, index) => (
-            <div 
-              key={index} 
-              className="bg-gray-800 rounded-xl p-4 relative border border-gray-700 hover:border-orange-500 transition-all duration-300"
-            >
-              {passengers.length > 1 && (
-                <button
-                  onClick={() => removePassenger(index)}
-                  className="absolute top-2 right-2 text-red-500 hover:text-red-400 transition-colors"
-                >
-                  <Trash2 />
-                </button>
-              )}
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="flex items-center text-white mb-2">
-                    <User className="mr-2 text-orange-500" /> Nome Completo
-                  </label>
-                  <input 
-                    type="text" 
-                    value={passenger.name}
-                    onChange={(e) => updatePassenger(index, 'name', e.target.value)}
-                    placeholder="Digite o nome completo"
-                    className="w-full bg-gray-700 text-white border-none rounded-lg focus:ring-2 focus:ring-orange-500 transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="flex items-center text-white mb-2">
-                    <Calendar className="mr-2 text-orange-500" /> Idade
-                  </label>
-                  <input 
-                    type="number" 
-                    value={passenger.age}
-                    onChange={(e) => updatePassenger(index, 'age', e.target.value)}
-                    placeholder="Idade"
-                    className="w-full bg-gray-700 text-white border-none rounded-lg focus:ring-2 focus:ring-orange-500 transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="flex items-center text-white mb-2">
-                    <Users className="mr-2 text-orange-500" /> Sexo
-                  </label>
-                  <select
-                    value={passenger.sex}
-                    onChange={(e) => updatePassenger(index, 'sex', e.target.value)}
-                    className="w-full bg-gray-700 text-white border-none rounded-lg focus:ring-2 focus:ring-orange-500 transition-all"
+          {/* Passenger Details */}
+          <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+            {passengers.map((passenger, index) => (
+              <div 
+                key={index} 
+                className="bg-gray-800 rounded-xl p-4 relative border border-gray-700 hover:border-orange-500 transition-all duration-300"
+              >
+                {passengers.length > 1 && (
+                  <button
+                    onClick={() => removePassenger(index)}
+                    className="absolute top-2 right-2 text-red-500 hover:text-red-400 transition-colors"
                   >
-                    <option value="">Selecione o Sexo</option>
-                    <option value="M">Masculino</option>
-                    <option value="F">Feminino</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="flex items-center text-white mb-2">
-                    <IdCard className="mr-2 text-orange-500" /> Número de Identificação
-                  </label>
-                  <input 
-                    type="text" 
-                    value={passenger.idNumber}
-                    onChange={(e) => updatePassenger(index, 'idNumber', e.target.value)}
-                    placeholder="Número do Bilhete de Identidade"
-                    className="w-full bg-gray-700 text-white border-none rounded-lg focus:ring-2 focus:ring-orange-500 transition-all"
-                  />
-                </div>
-
-                {passenger.seat && (
-                  <div className="col-span-2 text-white">
-                    <span className="text-orange-500">Assento Selecionado:</span> {passenger.seat}
-                  </div>
+                    <Trash2 />
+                  </button>
                 )}
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="flex items-center text-white mb-2">
+                      <User className="mr-2 text-orange-500" /> Nome Completo
+                    </label>
+                    <input 
+                      type="text" 
+                      value={passenger.name}
+                      onChange={(e) => updatePassenger(index, 'name', e.target.value)}
+                      placeholder="Digite o nome completo"
+                      className="w-full bg-gray-700 text-white border-none rounded-lg focus:ring-2 focus:ring-orange-500 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="flex items-center text-white mb-2">
+                      <Calendar className="mr-2 text-orange-500" /> Idade
+                    </label>
+                    <input 
+                      type="number" 
+                      value={passenger.age}
+                      onChange={(e) => updatePassenger(index, 'age', e.target.value)}
+                      placeholder="Idade"
+                      className="w-full bg-gray-700 text-white border-none rounded-lg focus:ring-2 focus:ring-orange-500 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="flex items-center text-white mb-2">
+                      <Users className="mr-2 text-orange-500" /> Sexo
+                    </label>
+                    <select
+                      value={passenger.sex}
+                      onChange={(e) => updatePassenger(index, 'sex', e.target.value)}
+                      className="w-full bg-gray-700 text-white border-none rounded-lg focus:ring-2 focus:ring-orange-500 transition-all"
+                    >
+                      <option value="">Selecione o Sexo</option>
+                      <option value="M">Masculino</option>
+                      <option value="F">Feminino</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="flex items-center text-white mb-2">
+                      <IdCard className="mr-2 text-orange-500" /> Número de Identificação
+                    </label>
+                    <input 
+                      type="text" 
+                      value={passenger.idNumber}
+                      onChange={(e) => updatePassenger(index, 'idNumber', e.target.value)}
+                      placeholder="Número do Bilhete de Identidade"
+                      className="w-full bg-gray-700 text-white border-none rounded-lg focus:ring-2 focus:ring-orange-500 transition-all"
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <Button 
+                      onClick={() => setIsSeatSelectionOpen(true)}
+                      variant="outline" 
+                      className="w-full border-orange-500 text-orange-500 hover:bg-orange-500/10 hover:text-white"
+                    >
+                      {passenger.seat 
+                        ? `Assento Selecionado: ${passenger.seat}` 
+                        : "Selecionar Assento"}
+                    </Button>
+                  </div></div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        <div className="flex justify-between items-center mt-4">
-          <Button 
-            onClick={addPassenger}
-            variant="outline" 
-            className="border-orange-500 text-orange-500 hover:bg-orange-500/10 hover:text-white flex items-center"
-          >
-            <UserPlus className="mr-2" /> Adicionar Passageiro
-          </Button>
+          <div className="flex justify-between items-center mt-4">
+            <Button 
+              onClick={addPassenger}
+              variant="outline" 
+              className="border-orange-500 text-orange-500 hover:bg-orange-500/10 hover:text-white flex items-center"
+            >
+              <UserPlus className="mr-2" /> Adicionar Passageiro
+            </Button>
 
-          <Button 
-            onClick={handleConfirm}
-            className="bg-orange-600 hover:bg-orange-700 text-white flex items-center"
-          >
-            Confirmar Reserva
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+            <Button 
+              onClick={handleConfirm}
+              className="bg-orange-600 hover:bg-orange-700 text-white flex items-center"
+            >
+              Confirmar Reserva
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Seat Selection Dialog */}
+      <Dialog open={isSeatSelectionOpen} onOpenChange={setIsSeatSelectionOpen}>
+        <DialogContent className="max-w-xl bg-gray-900 border-orange-500/30">
+          <DialogHeader className="text-white">
+            <DialogTitle className="text-2xl font-bold text-orange-500">
+              Seleção de Assentos
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Escolha um assento para o próximo passageiro
+            </DialogDescription>
+          </DialogHeader>
+
+          <BusSeatLayout 
+             ticket={ticket}
+            availableSeats={availableSeats}
+            selectedSeats={selectedSeats}
+            bookedSeats={bookedSeats}
+            onSeatSelect={selectSeat}
+          />
+
+          <div className="flex justify-end mt-4">
+            <Button 
+              onClick={() => setIsSeatSelectionOpen(false)}
+              variant="outline"
+              className="mr-2"
+            >
+              Cancelar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

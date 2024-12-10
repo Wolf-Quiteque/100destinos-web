@@ -88,6 +88,12 @@ function PaymentScreenContent() {
   }, [bookingId, router, supabase]);
 
   const handleFileUpload = async (e) => {
+
+    
+    await confirmBooking()
+    router.push(`/obrigado?bookingId=${bookingId}`);
+  
+    return;
    
     const file = e.target.files[0];
 
