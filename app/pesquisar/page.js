@@ -234,7 +234,7 @@ export default function BusTicketSearch() {
         />
         Ida
       </label>
-      <label className="flex items-center text-black">
+      {/* <label className="flex items-center text-black">
         <input 
           type="radio"
           checked={isRoundTrip}
@@ -242,7 +242,7 @@ export default function BusTicketSearch() {
           className="mr-2 text-orange-500 focus:ring-orange-500"
         />
         Ida & Volta
-      </label>
+      </label> */}
     </div>
   </div>
 

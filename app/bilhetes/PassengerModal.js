@@ -147,6 +147,8 @@ const PassengerModal = ({
   };
 
   const handleConfirm = async () => {
+
+
     // Validation
     const isValid = passengers.every(p => 
       p.name && p.age && p.sex && p.idNumber && p.seat
@@ -169,14 +171,13 @@ const PassengerModal = ({
       const bookingResult = await supabase.rpc('book_seats', {
         route_id_param: ticket.id,
         booking_date_param: new Date().toISOString().split('T')[0],
-        passengers_param: JSON.stringify(passengers),
+        passengers_param: passengers, // Pass as an array of objects
         total_passengers_param: passengers.length,
-        selected_seats_param: JSON.stringify(selectedSeats),
+        selected_seats_param: selectedSeats, // Pass as an array
         contact_email_param: contactInfo.email,
         contact_phone_param: contactInfo.phone
-      });
-
-      // Navigate to booking details page
+    });
+    
       router.push(`/detalhes?bookingId=${bookingResult.data}`);
     } catch (error) {
       console.error('Booking error:', error);
@@ -338,7 +339,6 @@ const PassengerModal = ({
 
           <BusSeatLayout 
              ticket={ticket}
-            availableSeats={availableSeats}
             selectedSeats={selectedSeats}
             bookedSeats={bookedSeats}
             onSeatSelect={selectSeat}

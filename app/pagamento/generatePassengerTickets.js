@@ -34,7 +34,7 @@ const generatePassengerTickets = async (bookingId) => {
     }
 
     const route = bookingData.bus_routes;
-    let passengers = JSON.parse(bookingData.passengers);
+    let passengers = bookingData.passengers;
     const companyName = route.bus_companies.name;
 
     // Validate passengers
@@ -67,7 +67,7 @@ const generatePassengerTickets = async (bookingId) => {
     const displaySelectedSeats = (selectedSeats) => {
       try {
         // Parse the JSON string of selected seats
-        const seats = JSON.parse(selectedSeats);
+        const seats =selectedSeats;
         
         // Return the seats as a formatted string
         return seats.length > 0 

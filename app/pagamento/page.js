@@ -89,8 +89,6 @@ function PaymentScreenContent() {
 
   const handleFileUpload = async (e) => {
 
-    
- 
    
     const file = e.target.files[0];
 
@@ -193,7 +191,7 @@ function PaymentScreenContent() {
   }
 
   const totalPrice = bookingDetails.total_price;
-  const passengers = JSON.parse(bookingDetails.passengers);
+  const passengers = bookingDetails.passengers;
 
 
   return (

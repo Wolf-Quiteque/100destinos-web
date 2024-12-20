@@ -52,7 +52,7 @@ function BookingDetailsContent() {
           .single();
 
         if (error) throw error;
-        setPassangers(JSON.parse(data.passengers))
+        setPassangers(data.passengers)
         setBookingDetails({
           ...data,
           route_details: {
