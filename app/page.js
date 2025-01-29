@@ -40,7 +40,7 @@ export default function Home() {
 
         {/* Clickable Image */}
         <div 
-          onClick={handleImageClick} 
+      
           className="mb-8 cursor-pointer hover:scale-105 transition-transform w-full max-w-md"
         >
           <img 
@@ -62,7 +62,7 @@ export default function Home() {
           <button 
             className="bg-white text-orange-500 px-6 py-2 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            Urbanização
+            Intra Ubarno
           </button>
         </div>
 
