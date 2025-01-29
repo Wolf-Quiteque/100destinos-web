@@ -1,60 +1,40 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
+import React from 'react';
 import { Users, Globe, MapPin } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const router = useRouter();
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const carouselImages = [
-    'https://picsum.photos/1600/900?random=1',
-    'https://picsum.photos/1600/900?random=4',
-    'https://picsum.photos/1600/900?random=2'
-  ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleImageClick = () => {
     router.push('/pesquisar');
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col">
-      {/* Background Carousel */}
-      <div className="absolute inset-0 z-0">
-        {carouselImages.map((img, index) => (
-          <div 
-            key={img}
-            className={`absolute inset-0 transition-opacity duration-1000 ${
-              index === currentSlide ? 'opacity-100' : 'opacity-0'
-            }`}
-          >
-            <Image 
-              src={img} 
-              alt={`Carousel image ${index + 1}`}
-              fill
-              style={{ objectFit: 'cover' }}
-              priority
-            />
-          </div>
-        ))}
-        <div className="absolute inset-0 bg-black/50"></div>
-      </div>
+    <div className="relative min-h-screen flex flex-col overflow-hidden">
+      {/* White Section */}
+      <div 
+        className="absolute top-0 left-0 w-full h-1/2 bg-white"
+        style={{ 
+          clipPath: 'polygon(0 0, 100% 0, 100% 80%, 0 100%)' 
+        }}
+      ></div>
+
+      {/* Orange Section */}
+      <div 
+        className="absolute bottom-0 left-0 w-full h-1/2 bg-orange-500"
+        style={{ 
+          clipPath: 'polygon(0 20%, 100% 0, 100% 100%, 0 100%)' 
+        }}
+      ></div>
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center flex-grow text-white text-center px-4">
+      <div className="relative z-10 flex flex-col items-center justify-center flex-grow text-center px-4">
         {/* Logo Placeholder */}
         <img 
           src='/img/logoff.png' 
           alt="Logo" 
-          
           className="h-16 mb-4 object-contain w-auto max-w-full"
         />
 
@@ -65,25 +45,40 @@ export default function Home() {
         >
           <img 
             src="/bus.png" 
-            style={{height:100}}
+            style={{ height: 100 }}
             alt="Clickable Image"
-            className="rounded-lg shadow-lg w-full h-auto object-contain"
+            className="w-full h-auto object-contain"
           />
         </div>
 
+        {/* Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          <button 
+            onClick={handleImageClick}
+            className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-colors"
+          >
+            Interprovicional
+          </button>
+          <button 
+            className="bg-white text-orange-500 px-6 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            Urbanização
+          </button>
+        </div>
+
         {/* Statistics */}
-        <div className="flex flex-wrap justify-center space-x-4 bg-black/50 p-4 rounded-lg max-w-full">
+        <div className="flex flex-wrap justify-center space-x-4 bg-orange-500/20 p-4 rounded-lg max-w-full backdrop-blur-sm">
           <div className="flex items-center space-x-2 mb-2 sm:mb-0">
             <Users className="text-white" />
-            <span className="text-sm sm:text-base">1,254 Inscritos</span>
+            <span className="text-sm sm:text-base text-white">1,254 Inscritos</span>
           </div>
           <div className="flex items-center space-x-2 mb-2 sm:mb-0">
             <Globe className="text-white" />
-            <span className="text-sm sm:text-base">5,678 Visitantes</span>
+            <span className="text-sm sm:text-base text-white">5,678 Visitantes</span>
           </div>
           <div className="flex items-center space-x-2">
             <MapPin className="text-white" />
-            <span className="text-sm sm:text-base">42 Viagens</span>
+            <span className="text-sm sm:text-base text-white">42 Viagens</span>
           </div>
         </div>
       </div>
