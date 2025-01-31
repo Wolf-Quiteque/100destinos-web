@@ -6,6 +6,15 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+.mapboxgl-canvas {
+  filter: hue-rotate(-10deg) contrast(1.1) saturate(1.2);
+}
+
+.mapboxgl-ctrl-attrib {
+  background: rgba(0,0,0,0.5) !important;
+  color: #fff !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

@@ -1,36 +1,41 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bus, Clock, MapPin, Ticket, Route, HandCoins, Zap } from 'lucide-react';
-
-import PassengerModal from './PassengerModal'
+import PassengerModal from './PassengerModal';
 import SearchModal from './SearchModal';
-
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-
 
 const BusTicketResults = () => {
   const supabase = createClientComponentClient();
-
   const [activeTab, setActiveTab] = useState('todos');
   const [dialog, setDialog] = useState(false);
   const [busTickets, setBusTickets] = useState([]);
-  const [selectedTicket, setselectedTicket] = useState();
-
+  const [selectedTicket, setSelectedTicket] = useState();
   const [filteredTickets, setFilteredTickets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isUrban, setIsUrban] = useState(false);
 
   useEffect(() => {
-    fetchBusRoutes();
+    const userSelect = localStorage.getItem('userSelect');
+    setIsUrban(userSelect === 'Urbano');
+    fetchBusRoutes(userSelect === 'Urbano');
   }, []);
 
-  const fetchBusRoutes = async () => {
+  const fetchBusRoutes = async (isUrban) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('available_routes')
         .select('*');
+
+      if (isUrban) {
+        query = query.eq('urbano', true);
+      } else {
+        query = query.eq('urbano', false);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -52,18 +57,16 @@ const BusTicketResults = () => {
   };
 
   const sortedTicketsByPrice = [...busTickets].sort((a, b) => a.base_price - b.base_price);
-
   const sortedTicketsBySpeed = [...busTickets].sort((a, b) => {
     const parseDuration = (duration) => {
       const [hours, minutes] = duration.replace(/\s*(hours|hour|h|minutes|minute|m)\s*/g, '').split(' ');
       return parseInt(hours) * 60 + parseInt(minutes);
     };
-
     return parseDuration(a.duration) - parseDuration(b.duration);
   });
 
   const handleModalClose = () => setDialog(false);
-  const handleModalOpen = (ticket) => { setselectedTicket(ticket); setDialog(true);}
+  const handleModalOpen = (ticket) => { setSelectedTicket(ticket); setDialog(true); }
 
   if (loading) {
     return <div className="text-white text-center py-8">Carregando rotas...</div>;
@@ -71,15 +74,15 @@ const BusTicketResults = () => {
 
   return (
     <>
-    <PassengerModal isOpen={dialog} ticket={selectedTicket} onClose={handleModalClose}/>
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-orange-800 p-4 md:p-8">
-    <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-center mb-6">
-          <h1 className="text-3xl md:text-4xl font-bold text-white mr-4">
-            Resultados de Viagem
-          </h1>
-          <SearchModal onSearch={handleSearch} />
-        </div>
+      <PassengerModal isOpen={dialog} ticket={selectedTicket} onClose={handleModalClose}/>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-orange-800 p-4 md:p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-center mb-6">
+            <h1 className="text-3xl md:text-4xl font-bold text-white mr-4">
+              {isUrban ? 'Rotas Urbanas' : 'Rotas Interprovinciais'}
+            </h1>
+            <SearchModal onSearch={handleSearch} />
+          </div>
 
         <Tabs 
           defaultValue="todos" 
