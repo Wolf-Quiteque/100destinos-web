@@ -93,6 +93,12 @@ function PaymentScreenContent() {
     const file = e.target.files[0];
 
     if (!file) return;
+    
+
+    await confirmBooking()
+    router.push(`/obrigado?bookingId=${bookingId}`);
+  
+    return;
 
     const maxSize = 1 * 1024 * 1024;
     if (file.size > maxSize) {
