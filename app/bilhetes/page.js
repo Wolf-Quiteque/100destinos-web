@@ -7,8 +7,10 @@ import { Bus, Clock, MapPin, Ticket, Route, HandCoins, Zap, Loader2, ArrowLeft }
 import PassengerModal from './PassengerModal';
 import SearchModal from './SearchModal';
 import { Button } from '@/components/ui/button'; // Assuming Button component exists
+import { Suspense } from 'react'; // Import Suspense (React is already imported)
 
-const BusTicketResults = () => {
+// Rename the main component and keep its logic
+const BilhetesClientComponent = () => {
   const supabase = createClientComponentClient();
   const searchParams = useSearchParams(); // Hook to get URL params
   const router = useRouter(); // Hook for navigation
@@ -296,4 +298,20 @@ const TicketCard = ({ ticket, selectTicket }) => {
   );
 };
 
-export default BusTicketResults;
+// New default export for the page, wrapping the client component in Suspense
+export default function BilhetesPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <BilhetesClientComponent />
+    </Suspense>
+  );
+}
+
+// Simple loading fallback component
+const LoadingFallback = () => {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-orange-800 flex items-center justify-center">
+      <Loader2 className="h-16 w-16 text-orange-500 animate-spin" />
+    </div>
+  );
+};
