@@ -1,13 +1,17 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react'; // Added useMemo
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useSearchParams, useRouter } from 'next/navigation'; // Added useSearchParams and useRouter
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bus, Clock, MapPin, Ticket, Route, HandCoins, Zap } from 'lucide-react';
+import { Bus, Clock, MapPin, Ticket, Route, HandCoins, Zap, Loader2, ArrowLeft } from 'lucide-react'; // Added Loader2 and ArrowLeft
 import PassengerModal from './PassengerModal';
 import SearchModal from './SearchModal';
+import { Button } from '@/components/ui/button'; // Assuming Button component exists
 
 const BusTicketResults = () => {
   const supabase = createClientComponentClient();
+  const searchParams = useSearchParams(); // Hook to get URL params
+  const router = useRouter(); // Hook for navigation
   const [activeTab, setActiveTab] = useState('todos');
   const [dialog, setDialog] = useState(false);
   const [busTickets, setBusTickets] = useState([]);
@@ -15,23 +19,39 @@ const BusTicketResults = () => {
   const [filteredTickets, setFilteredTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isUrban, setIsUrban] = useState(false);
+  const [searchDeparture, setSearchDeparture] = useState(''); // State for URL departure
+  const [searchDestination, setSearchDestination] = useState(''); // State for URL destination
 
   useEffect(() => {
-    const userSelect = localStorage.getItem('userSelect');
-    setIsUrban(userSelect === 'Urbano');
-    fetchBusRoutes(userSelect === 'Urbano');
-  }, []);
+    // Get search params from URL
+    const departureParam = searchParams.get('departure');
+    const destinationParam = searchParams.get('destination');
+    setSearchDeparture(departureParam || '');
+    setSearchDestination(destinationParam || '');
 
-  const fetchBusRoutes = async (isUrban) => {
+    // Determine urban/interprovincial from localStorage (as before)
+    const userSelect = localStorage.getItem('userSelect');
+    const urbanStatus = userSelect === 'Urbano';
+    setIsUrban(urbanStatus);
+
+    // Fetch routes based on urban status, passing URL params for prioritization
+    fetchBusRoutes(urbanStatus, departureParam, destinationParam);
+
+  }, [searchParams]); // Re-run if searchParams change
+
+  const fetchBusRoutes = async (isUrban, departureParam, destinationParam) => {
     setLoading(true);
+    setBusTickets([]); // Clear previous tickets
+    setFilteredTickets([]); // Clear previous filtered tickets
     try {
       let query = supabase
-        .from('available_routes')
+        .from('available_routes') // Using the view
         .select('*');
 
       if (isUrban) {
         query = query.eq('urbano', true);
       } else {
+        // Fetch non-urban routes
         query = query.eq('urbano', false);
       }
 
@@ -39,46 +59,114 @@ const BusTicketResults = () => {
 
       if (error) throw error;
 
-      setBusTickets(data);
-      setFilteredTickets(data);
-      setLoading(false);
+      const fetchedData = data || [];
+      setBusTickets(fetchedData); // Store raw fetched data
+
+      // Prioritize exact matches based on URL params for the "Todos" tab initial view
+      const prioritizedData = [...fetchedData].sort((a, b) => {
+        const aIsExactMatch = a.origin === departureParam && a.destination === destinationParam;
+        const bIsExactMatch = b.origin === departureParam && b.destination === destinationParam;
+
+        if (aIsExactMatch && !bIsExactMatch) return -1; // a comes first
+        if (!aIsExactMatch && bIsExactMatch) return 1;  // b comes first
+        // Optional: Add secondary sort (e.g., by price or time) if needed for non-exact matches
+        // return a.base_price - b.base_price;
+        return 0; // Keep original relative order otherwise
+      });
+
+      setFilteredTickets(prioritizedData); // Set filtered tickets with prioritized results for the "Todos" tab
+
     } catch (error) {
       console.error('Error fetching bus routes:', error);
+      // Consider adding user feedback here (e.g., toast notification)
+    } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = (searchParams) => {
-    const filtered = busTickets.filter(ticket => 
-      (!searchParams.origem || ticket.origin.toLowerCase().includes(searchParams.origem.toLowerCase())) &&
-      (!searchParams.destino || ticket.destination.toLowerCase().includes(searchParams.destino.toLowerCase()))
+  // Memoize sorted lists based on the currently displayed filteredTickets
+  const sortedTicketsByPrice = useMemo(() => {
+    // Sorts the tickets currently shown in the "Todos" tab by price
+    return [...filteredTickets].sort((a, b) => a.base_price - b.base_price);
+  }, [filteredTickets]);
+
+  const sortedTicketsBySpeed = useMemo(() => {
+    // Sorts the tickets currently shown in the "Todos" tab by speed
+    return [...filteredTickets].sort((a, b) => {
+      // Improved duration parsing (handles various formats like HH:MM:SS or interval strings)
+      const parseDuration = (durationStr) => {
+        if (!durationStr) return Infinity; // Handle null/undefined durations
+        // Try parsing HH:MM:SS
+        const timeParts = durationStr.match(/^(\d{2}):(\d{2}):(\d{2})$/);
+        if (timeParts) {
+          return parseInt(timeParts[1]) * 3600 + parseInt(timeParts[2]) * 60 + parseInt(timeParts[3]);
+        }
+        // Try parsing interval string (e.g., "2 hours 30 minutes") - basic version
+        let totalSeconds = 0;
+        const hourMatch = durationStr.match(/(\d+)\s*hour/);
+        const minMatch = durationStr.match(/(\d+)\s*min/);
+        if (hourMatch) totalSeconds += parseInt(hourMatch[1]) * 3600;
+        if (minMatch) totalSeconds += parseInt(minMatch[1]) * 60;
+        // Add more robust parsing if needed (e.g., using a library)
+        return totalSeconds > 0 ? totalSeconds : Infinity; // Return Infinity if parsing fails or duration is 0
+      };
+      return parseDuration(a.duration) - parseDuration(b.duration);
+    });
+  }, [filteredTickets]);
+
+  // Handle search from the modal
+  const handleSearch = (modalSearchParams) => {
+    // Filter from the original full list of tickets for the current urban status
+    const filtered = busTickets.filter(ticket =>
+      (!modalSearchParams.origem || ticket.origin.toLowerCase().includes(modalSearchParams.origem.toLowerCase())) &&
+      (!modalSearchParams.destino || ticket.destination.toLowerCase().includes(modalSearchParams.destino.toLowerCase()))
     );
-    setFilteredTickets(filtered);
+     // Re-apply prioritization based on initial URL search params after modal filtering
+     const prioritizedFiltered = [...filtered].sort((a, b) => {
+        const aIsExactMatch = a.origin === searchDeparture && a.destination === searchDestination;
+        const bIsExactMatch = b.origin === searchDeparture && b.destination === searchDestination;
+        if (aIsExactMatch && !bIsExactMatch) return -1;
+        if (!aIsExactMatch && bIsExactMatch) return 1;
+        // Optional secondary sort for the modal's results
+        return 0;
+      });
+    setFilteredTickets(prioritizedFiltered); // Update the list shown in the "Todos" tab
+    setActiveTab('todos'); // Switch back to 'todos' tab after modal search
   };
 
-  const sortedTicketsByPrice = [...busTickets].sort((a, b) => a.base_price - b.base_price);
-  const sortedTicketsBySpeed = [...busTickets].sort((a, b) => {
-    const parseDuration = (duration) => {
-      const [hours, minutes] = duration.replace(/\s*(hours|hour|h|minutes|minute|m)\s*/g, '').split(' ');
-      return parseInt(hours) * 60 + parseInt(minutes);
-    };
-    return parseDuration(a.duration) - parseDuration(b.duration);
-  });
 
   const handleModalClose = () => setDialog(false);
   const handleModalOpen = (ticket) => { setSelectedTicket(ticket); setDialog(true); }
 
   if (loading) {
-    return <div className="text-white text-center py-8">Carregando rotas...</div>;
-  }
+    // Updated loading indicator
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-orange-800 flex items-center justify-center">
+        <Loader2 className="h-16 w-16 text-orange-500 animate-spin" />
+      </div>
+    );
+  } // Corrected: Removed extra brace, semicolon, and duplicated lines/blocks
 
+  // handleModalClose and handleModalOpen are already defined above
+
+  // The main return statement starts here
   return (
     <>
       <PassengerModal isOpen={dialog} ticket={selectedTicket} onClose={handleModalClose}/>
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-orange-800 p-4 md:p-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-center mb-6">
-            <h1 className="text-3xl md:text-4xl font-bold text-white mr-4">
+        <div className="max-w-4xl mx-auto relative"> {/* Added relative positioning */}
+          {/* Back Button */}
+          <Button 
+            variant="ghost" 
+            size="lg" // Made button size larger
+            className="absolute top-1 left-1 md:top-3 md:left-3 text-white bg-black/20 hover:bg-white/30 focus:bg-white/30 p-2.5 rounded-full" // Adjusted position, added subtle base bg, increased padding
+            onClick={() => router.push('/pesquisar')}
+          >
+            <ArrowLeft className="h-8 w-8" strokeWidth={3.5} /> {/* Slightly increased strokeWidth */}
+          </Button>
+          
+          <div className="flex items-center justify-center mb-6 pt-12 md:pt-0"> {/* Increased padding top for mobile */}
+            <h1 className="text-3xl md:text-4xl font-bold text-white text-center"> {/* Centered title */}
               {isUrban ? 'Rotas Urbanas' : 'Rotas Interprovinciais'}
             </h1>
             <SearchModal onSearch={handleSearch} />
