@@ -171,7 +171,7 @@ const BilhetesClientComponent = () => {
             <h1 className="text-3xl md:text-4xl font-bold text-white text-center"> {/* Centered title */}
               {isUrban ? 'Rotas Urbanas' : 'Rotas Interprovinciais'}
             </h1>
-            <SearchModal onSearch={handleSearch} />
+            {/* <SearchModal onSearch={handleSearch} /> */} {/* Removed Search Modal */}
           </div>
 
         <Tabs 
@@ -249,7 +249,7 @@ const TicketCard = ({ ticket, selectTicket }) => {
             <h2 className="text-xl font-bold text-white">{ticket.company_name}</h2>
           </div>
           <div className="bg-orange-600/20 text-orange-300 px-3 py-1 rounded-full text-sm">
-            {ticket.available_seats} lugares disponíveis
+            {ticket.available_seats} lugares {/* Shortened text */}
           </div>
         </div>
 

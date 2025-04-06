@@ -386,7 +386,8 @@ export default function BusTicketSearch() {
                whileHover={{ scale: 1.05 }}
                whileTap={{ scale: 0.95 }}
                 type="submit"
-                className={`w-full bg-orange-600 text-white p-4 rounded-xl font-bold uppercase tracking-wide 
+                // Changed py-1.5 to py-1
+                className={`w-full bg-orange-600 text-white py-1 px-4 rounded-xl font-bold uppercase tracking-wide 
                 hover:bg-orange-700 transition-colors duration-300 flex items-center justify-center space-x-2
                 ${loadingRoutes ? 'opacity-50 cursor-not-allowed' : ''}`} // Style when loading
                 disabled={loadingRoutes} // Disable button while loading
