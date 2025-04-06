@@ -208,13 +208,15 @@ export default function BusTicketSearch() {
   // Removed foundTickets array as it's not used here
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-orange-800">
+    // Added pb-20 md:pb-0 for app bar spacing on mobile
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-orange-800 pb-20 md:pb-0"> 
       <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="w-full max-w-md bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl shadow-2xl p-6"
+          // Removed card styling classes (bg, backdrop, border, rounded, shadow, p-6)
+          className="w-full max-w-md" 
         >
           {searchAnimationStage < 6 ? (
            <form onSubmit={handleSearch} className="space-y-4">
@@ -240,16 +242,18 @@ export default function BusTicketSearch() {
                variants={createSequentialSlideVariants()}
                initial="initial"
                animate={searchAnimationStage > 1 ? "animate" : "initial"}
-               className="relative"
+                className="relative"
              >
-               <label className="block text-black mb-2 flex items-center">
+               {/* Changed label text color */}
+               <label className="block text-white mb-2 flex items-center"> 
                  <MapPin className="mr-2 text-orange-500" size={20} />
                  Origem
                </label>
                <select 
                  value={departure}
                  onChange={(e) => setDeparture(e.target.value)}
-                 className="w-full p-3 bg-white/30 backdrop-blur-sm border border-white/30 rounded-xl text-black placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                 // Updated select styling
+                 className="w-full p-3 bg-gray-700/60 backdrop-blur-sm border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
                   required
                   disabled={loadingRoutes} // Disable while loading
                 >
@@ -268,16 +272,18 @@ export default function BusTicketSearch() {
                variants={createSequentialSlideVariants()}
                initial="initial"
                animate={searchAnimationStage > 2 ? "animate" : "initial"}
-               className="relative"
+                className="relative"
              >
-               <label className="block text-black mb-2 flex items-center">
+                {/* Changed label text color */}
+               <label className="block text-white mb-2 flex items-center">
                  <MapPin className="mr-2 text-orange-500" size={20} />
                  Destino
                </label>
                <select 
                  value={destination}
                  onChange={(e) => setDestination(e.target.value)}
-                 className="w-full p-3 bg-white/30 backdrop-blur-sm border border-white/30 rounded-xl text-black placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                 // Updated select styling
+                 className="w-full p-3 bg-gray-700/60 backdrop-blur-sm border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
                   required
                   disabled={loadingRoutes || !departure} // Disable if loading or no origin selected
                 >
@@ -297,25 +303,28 @@ export default function BusTicketSearch() {
                initial="initial"
                animate={searchAnimationStage > 3 ? "animate" : "initial"}
                className="space-y-4"
-             >
-                <div className="mb-4">
-                  <label className="block text-black mb-2">Tipo de Viagem</label>
-                  <div className="flex items-center space-x-4 justify-center"> {/* Centered radio buttons */}
-                    <label className="flex items-center text-black cursor-pointer">
-                      <input 
-                        type="radio"
-                        name="tripType" // Added name for grouping
+              >
+                 <div className="mb-4">
+                    {/* Changed label text color */}
+                   <label className="block text-white mb-2">Tipo de Viagem</label>
+                   <div className="flex items-center space-x-4 justify-center"> {/* Centered radio buttons */}
+                      {/* Changed label text color */}
+                     <label className="flex items-center text-white cursor-pointer">
+                       <input 
+                         type="radio"
+                         name="tripType" // Added name for grouping
                         checked={!isRoundTrip}
                         onChange={() => setIsRoundTrip(false)}
                         className="mr-2 text-orange-500 focus:ring-orange-500"
                         disabled={loadingRoutes} // Disable while loading
-                      />
-                      Ida
-                    </label>
-                    <label className={`flex items-center text-black ${!returnRouteExists || loadingRoutes ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
-                      <input 
-                        type="radio"
-                        name="tripType" // Added name for grouping
+                       />
+                       Ida
+                     </label>
+                      {/* Changed label text color */}
+                     <label className={`flex items-center text-white ${!returnRouteExists || loadingRoutes ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+                       <input 
+                         type="radio"
+                         name="tripType" // Added name for grouping
                         checked={isRoundTrip}
                         onChange={() => setIsRoundTrip(true)}
                         className="mr-2 text-orange-500 focus:ring-orange-500"
@@ -329,38 +338,42 @@ export default function BusTicketSearch() {
                   )}
                 </div>
 
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div>
-                   <label className="block text-black mb-2 flex items-center">
-                     <Calendar className="mr-2 text-orange-500" size={20} />
-                     Data de Partida
-                   </label>
-                   <input 
-                     type="date"
-                     value={date}
-                     onChange={(e) => setDate(e.target.value)}
-                     min={new Date().toISOString().split('T')[0]}
-                     className="w-full p-3 bg-white/30 backdrop-blur-sm border border-white/30 rounded-xl text-black focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      required
-                      disabled={loadingRoutes} // Disable while loading
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                     {/* Changed label text color */}
+                    <label className="block text-white mb-2 flex items-center">
+                      <Calendar className="mr-2 text-orange-500" size={20} />
+                      Data de Partida
+                    </label>
+                    <input 
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      // Updated input styling
+                      className="w-full p-3 bg-gray-700/60 backdrop-blur-sm border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                       required
+                       disabled={loadingRoutes} // Disable while loading
+                     />
                   </div>
 
-                 {isRoundTrip && (
-                   <div>
-                     <label className="block text-black mb-2 flex items-center">
-                       <Calendar className="mr-2 text-orange-500" size={20} />
-                       Data de Retorno
-                     </label>
-                     <input 
-                       type="date"
-                       value={returnDate || ''}
-                       onChange={(e) => setReturnDate(e.target.value)}
-                       min={date || new Date().toISOString().split('T')[0]}
-                       className="w-full p-3 bg-white/30 backdrop-blur-sm border border-white/30 rounded-xl text-black focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        required={isRoundTrip}
-                        disabled={loadingRoutes} // Disable while loading
-                      />
+                  {isRoundTrip && (
+                    <div>
+                       {/* Changed label text color */}
+                      <label className="block text-white mb-2 flex items-center">
+                        <Calendar className="mr-2 text-orange-500" size={20} />
+                        Data de Retorno
+                      </label>
+                      <input 
+                        type="date"
+                        value={returnDate || ''}
+                        onChange={(e) => setReturnDate(e.target.value)}
+                        min={date || new Date().toISOString().split('T')[0]}
+                         // Updated input styling
+                        className="w-full p-3 bg-gray-700/60 backdrop-blur-sm border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                         required={isRoundTrip}
+                         disabled={loadingRoutes} // Disable while loading
+                       />
                     </div>
                   )}
                </div>

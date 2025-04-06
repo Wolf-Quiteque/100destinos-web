@@ -32,7 +32,8 @@ export default function Home() {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col" style={{ background: 'linear-gradient(to bottom, #FFA500, #FFFFFF)' }}>
+    // Added pb-20 md:pb-0 for app bar spacing on mobile
+    <div className="relative min-h-screen flex flex-col pb-20 md:pb-0" style={{ background: 'linear-gradient(to bottom, #FFA500, #FFFFFF)' }}> 
       {/* Background Carousel */}
       <div className="absolute inset-0 z-0">
         {carouselImages.map((img, index) => (

@@ -90,10 +90,13 @@ export default function PerfilPage() {
   const profilePicUrl = `https://picsum.photos/seed/${profilePicSeed}/200/200`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-900 via-gray-900 to-black text-white p-4 md:p-8 flex flex-col items-center pt-12 md:pt-16">
-      <div className="w-full max-w-md bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-2xl p-6 md:p-8 border border-orange-700/50">
+    // Added bottom padding pb-20 md:pb-8
+    <div className="min-h-screen bg-gradient-to-br from-orange-900 via-gray-900 to-black text-white p-4 md:p-8 flex flex-col items-center pt-12 md:pt-16 pb-20 md:pb-8">
+      {/* Removed card styling (bg, backdrop, rounded, shadow, p-*, border) from this div */}
+      <div className="w-full max-w-md"> 
         {/* Profile Picture */}
         <div className="flex justify-center mb-6">
+          {/* Kept profile picture styling */}
           <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-orange-500 shadow-lg">
             <Image
               src={profilePicUrl} // Use dynamic seed
@@ -114,8 +117,7 @@ export default function PerfilPage() {
           <InfoItem icon={User} label="Nº BI" value={profile.numero_bi || 'N/A'} />
           <InfoItem icon={Phone} label="Telefone" value={profile.telefone || 'N/A'} />
           {/* Email is derived, not stored in profiles table */}
-          <InfoItem icon={Mail} label="Email Auth" value={`${profile.telefone}@100.com` || 'N/A'} />
-        </div>
+       </div>
 
         {/* Logout Button */}
         <div className="mt-8 text-center">
