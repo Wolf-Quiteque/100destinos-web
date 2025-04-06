@@ -114,15 +114,7 @@ export default function Home() {
             <span className="text-sm sm:text-base">42 Viagens</span>
           </div>
         </div>
-      </div>
-
-      {/* Footer */}
-      <footer className="relative z-10 py-4 text-white bg-black/60">
-        <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center px-4">
-          <span className="text-xs sm:text-sm mb-2 sm:mb-0">© 2024 100 Destinos. All Rights Reserved.</span>
-          <span className="text-xs sm:text-sm hidden sm:inline">by ZRD3</span> {/* Added hidden sm:inline */}
-        </div>
-      </footer>
-    </div>
-  );
-}
+       </div>
+     </div>
+   );
+ }

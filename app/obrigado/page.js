@@ -1,11 +1,12 @@
 'use client'
 import React, { useEffect, useState, Suspense } from 'react';
-import { 
-  Check, 
-  MapPin, 
-  Ticket, 
-  Bus, 
-  Download 
+import {
+  Check,
+  MapPin,
+  Ticket,
+  Bus,
+  Download,
+  Users // Added Users icon
 } from 'lucide-react';
 import generatePassengerTickets from '../pagamento/generatePassengerTickets';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -13,40 +14,36 @@ import BusTicketLoader from '../components/BusTicketLoader';
 
 function ThankYouScreenContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const [animationStage, setAnimationStage] = useState(0);
+  const [bookingInfo, setBookingInfo] = useState({ origin: 'N/A', destination: 'N/A', passengerCount: 0 }); // State for booking info
   const bookingId = searchParams.get('bookingId');
 
-  const router = useRouter()
-  const ticket = {
-    id: 1,
-    company: 'Huambo Expresse',
-    origin: 'Luanda',
-    destination: 'Huambo',
-    departureTime: '08:00',
-    arrivalTime: '16:30',
-    price: 4500,
-    duration: '8h 30m',
-    availableSeats: 12
-  };
-  
-  // Dummy Passengers Data
-  const passengers = [
-    {
-      name: 'João Silva Santos',
-      age: 35,
-      sex: 'M',
-      idNumber: '001234567LA048'
-    },
-    {
-      name: 'Maria Conceição Pereira',
-      age: 28,
-      sex: 'F',
-      idNumber: '009876543LB052'
-    }
-  ];
-
   useEffect(() => {
+    // Retrieve booking details from localStorage
+    const storedDetails = localStorage.getItem('lastBookingDetails');
+    if (storedDetails) {
+      try {
+        const parsedDetails = JSON.parse(storedDetails);
+        setBookingInfo({
+          origin: parsedDetails.origin || 'N/A',
+          destination: parsedDetails.destination || 'N/A',
+          passengerCount: parsedDetails.passengerCount || 0
+        });
+        // Optional: Clear the item after retrieving it
+        // localStorage.removeItem('lastBookingDetails');
+      } catch (error) {
+        console.error("Error parsing booking details from localStorage:", error);
+        // Keep default N/A values if parsing fails
+      }
+    } else {
+      console.warn("No booking details found in localStorage for Obrigado page.");
+      // Maybe redirect or show an error if details are crucial?
+      // For now, it will just show N/A
+    }
+
+    // Animation stages
     const stages = [
       () => setAnimationStage(1),
       () => setAnimationStage(2),
@@ -56,21 +53,32 @@ function ThankYouScreenContent() {
     stages.forEach((stage, index) => {
       setTimeout(stage, (index + 1) * 500);
     });
-  }, []);
+  }, []); // Run only once on mount
 
   const Downloadpdf = async () =>{
-    console.log(bookingId)
-      await generatePassengerTickets(bookingId)
-      router.push("/pesquisar")
-  } 
+    if (!bookingId) {
+      console.error("No booking ID found for PDF generation.");
+      // Optionally show a toast message to the user
+      return;
+    }
+    console.log("Generating PDF for booking ID:", bookingId);
+    try {
+      await generatePassengerTickets(bookingId);
+      // Consider adding a success toast here
+      router.push("/pesquisar"); // Redirect after initiating download
+    } catch (error) {
+       console.error("Error generating PDF:", error);
+       // Optionally show an error toast
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-orange-800 overflow-hidden relative flex items-center justify-center p-4">
       {/* Starfield Background */}
       <div className="absolute inset-0 overflow-hidden">
         {[...Array(100)].map((_, i) => (
-          <div 
-            key={i} 
+          <div
+            key={i}
             className="absolute bg-white opacity-50 rounded-full animate-pulse"
             style={{
               width: `${Math.random() * 3}px`,
@@ -84,7 +92,7 @@ function ThankYouScreenContent() {
       </div>
 
       {/* Holographic Grid */}
-      <div 
+      <div
         className="absolute inset-0 opacity-10 pointer-events-none"
         style={{
           backgroundImage: 'linear-gradient(0deg, transparent 24%, rgba(255, 165, 0, 0.04) 25%, rgba(255, 165, 0, 0.04) 26%, transparent 27%, transparent 74%, rgba(255, 165, 0, 0.04) 75%, rgba(255, 165, 0, 0.04) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(255, 165, 0, 0.04) 25%, rgba(255, 165, 0, 0.04) 26%, transparent 27%, transparent 74%, rgba(255, 165, 0, 0.04) 75%, rgba(255, 165, 0, 0.04) 76%, transparent 77%, transparent)',
@@ -94,9 +102,9 @@ function ThankYouScreenContent() {
 
       <div className="relative z-10 max-w-2xl w-full text-center">
         {/* Animated Check Circle */}
-        <div 
+        <div
           className={`
-            mx-auto w-32 h-32 rounded-full flex items-center justify-center 
+            mx-auto w-32 h-32 rounded-full flex items-center justify-center
             bg-orange-500 text-white mb-6 transform transition-all duration-1000
             ${animationStage >= 1 ? 'scale-100 rotate-0' : 'scale-0 rotate-180'}
           `}
@@ -105,7 +113,7 @@ function ThankYouScreenContent() {
         </div>
 
         {/* Thank You Message */}
-        <div 
+        <div
           className={`
             text-white transition-all duration-1000 transform
             ${animationStage >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
@@ -119,8 +127,8 @@ function ThankYouScreenContent() {
           </p>
         </div>
 
-        {/* Trip Details */}
-        <div 
+        {/* Trip Details - Updated to use bookingInfo state */}
+        <div
           className={`
             bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700
             space-y-4 transition-all duration-1000 transform
@@ -131,40 +139,41 @@ function ThankYouScreenContent() {
             <div className="flex flex-col items-center">
               <Bus className="text-orange-500 mb-2" />
               <span className="text-sm">Origem</span>
-              <strong>{ticket.origin}</strong>
+              <strong>{bookingInfo.origin}</strong>
             </div>
             <div className="flex flex-col items-center">
               <MapPin className="text-orange-500 mb-2" />
               <span className="text-sm">Destino</span>
-              <strong>{ticket.destination}</strong>
+              <strong>{bookingInfo.destination}</strong>
             </div>
             <div className="flex flex-col items-center">
-              <Ticket className="text-orange-500 mb-2" />
+              <Users className="text-orange-500 mb-2" /> {/* Changed icon */}
               <span className="text-sm">Passageiros</span>
-              <strong>{passengers.length}</strong>
+              <strong>{bookingInfo.passengerCount}</strong>
             </div>
           </div>
         </div>
 
         {/* Continue Button */}
-        <button 
+        <button
           onClick={Downloadpdf}
+          disabled={!bookingId} // Disable if no bookingId
           className={`
-            mt-6 mx-auto flex items-center justify-center 
-            px-8 py-4 bg-orange-600 text-white text-xl 
-            font-bold rounded-full hover:bg-orange-700 
-            transition-all duration-300 transform
+            mt-6 mx-auto flex items-center justify-center
+            px-8 py-4 bg-orange-600 text-white text-xl
+            font-bold rounded-full hover:bg-orange-700
+            transition-all duration-300 transform disabled:opacity-50 disabled:cursor-not-allowed
             ${animationStage >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
           `}
         >
-          Baixar Comprativo <Download className="ml-2" />
+          Baixar Comprovativo <Download className="ml-2" />
         </button>
       </div>
 
       {/* Animated Particle Effects */}
       {[...Array(20)].map((_, i) => (
-        <div 
-          key={i} 
+        <div
+          key={i}
           className={`
             absolute bg-orange-500 rounded-full opacity-50 animate-ping
             ${animationStage >= 2 ? 'block' : 'hidden'}
