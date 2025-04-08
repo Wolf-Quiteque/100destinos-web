@@ -115,9 +115,10 @@ export default function SignupPage() {
     } else {
       toast({
         title: "Registo bem-sucedido!",
-        description: "Conta criada com sucesso. Pode iniciar sessão agora.",
+        description: "Conta criada com sucesso. Redirecionando...",
       });
-      router.push('/login'); // Redirect to login page after successful signup
+      router.push('/'); // Redirect to home page after successful signup
+      router.refresh(); // Refresh state
     }
   };
 

@@ -59,12 +59,12 @@ export default function LoginPage() {
       toast({
         title: "Login bem-sucedido!",
         description: "Redirecionando...",
-      });
-      // Redirect to home or dashboard after successful login
-      // router.push('/'); // Or router.push('/perfil');
-      router.refresh(); // Refresh to update layout/session state
-    }
-  };
+       });
+       // Redirect to home or dashboard after successful login
+       router.push('/'); // Or router.push('/perfil');
+       router.refresh(); // Refresh to update layout/session state
+     }
+   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-orange-900 to-black p-4">

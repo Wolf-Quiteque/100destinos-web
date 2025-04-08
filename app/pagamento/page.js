@@ -52,7 +52,8 @@ function PaymentScreenContent() {
         description: "O seu bilhete foi confirmado com sucesso.",
       });
 
-      router.push("/obrigado"); // Redirect to obrigado page after confirmation
+      // Pass bookingId to the "Obrigado" page
+      router.push(`/obrigado?bookingId=${bookingId}`);
     } catch (error) {
       console.error('Error confirming booking:', error);
       toast({

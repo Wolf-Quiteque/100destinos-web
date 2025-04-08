@@ -11,6 +11,7 @@ import {
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'; // Added Supabase client
+import { useToast } from "@/hooks/use-toast"; // Added useToast
 import BustTicketLoaderOld from '../components/BustTicketLoaderOld';
 
 export default function BusTicketSearch() {
@@ -29,6 +30,7 @@ export default function BusTicketSearch() {
   const [filteredDestinations, setFilteredDestinations] = useState([]); // State for filtered destinations
   const [loadingRoutes, setLoadingRoutes] = useState(true); // State for loading indicator
   const [returnRouteExists, setReturnRouteExists] = useState(false); // State to track if return route is possible
+  const { toast } = useToast(); // Initialized useToast
 
   useEffect(() => {
     // Set userType from localStorage first
@@ -100,7 +102,7 @@ export default function BusTicketSearch() {
       setDeparture('');
       setDestination('');
     }
-  }, [allRoutes, userType, departure]); // Dependencies: allRoutes, userType, and departure
+  }, [allRoutes, userType, departure]); // Dependencies: allRoutes, userType, and departure // Removed destination dependency as it's handled within
 
   // Effect to check if a return route exists
   useEffect(() => {
@@ -122,21 +124,42 @@ export default function BusTicketSearch() {
     }
   }, [departure, destination, allRoutes, userType]); // Dependencies
 
+  // Effect to handle redirection after animation based on auth status
   useEffect(() => {
-    if (searchAnimationStage === 6) {
-      // Construct query parameters
-      const queryParams = new URLSearchParams({
-        departure,
-        destination,
-        date,
-        isRoundTrip: isRoundTrip.toString(),
-      });
-      if (isRoundTrip && returnDate) {
-        queryParams.set('returnDate', returnDate);
+    const handleRedirect = async () => {
+      // Check authentication status right before redirecting
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (session) {
+        // User is authenticated, proceed to bilhetes page
+        const queryParams = new URLSearchParams({
+          departure,
+          destination,
+          date,
+          isRoundTrip: isRoundTrip.toString(),
+        });
+        if (isRoundTrip && returnDate) {
+          queryParams.set('returnDate', returnDate);
+        }
+        router.push(`/bilhetes?${queryParams.toString()}`);
+      } else {
+        // User is not authenticated, redirect to signup
+        toast({
+          title: "Autenticação Necessária",
+          description: "Por favor, registe-se ou faça login para continuar.",
+          variant: "default",
+        });
+        router.push('/signup');
+        // Optionally reset animation state if needed, though navigation might suffice
+        // setSearchAnimationStage(0);
       }
-      router.push(`/bilhetes?${queryParams.toString()}`);
+    };
+
+    if (searchAnimationStage === 6) {
+      handleRedirect();
     }
-  }, [searchAnimationStage, router, departure, destination, date, isRoundTrip, returnDate]); // Added dependencies for query params
+  }, [searchAnimationStage, supabase, router, departure, destination, date, isRoundTrip, returnDate, toast]); // Added dependencies
+
 
   // Remove hardcoded arrays as they are no longer needed
   // const angolianProvinces = [ ... ];
