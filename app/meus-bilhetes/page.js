@@ -227,7 +227,8 @@ export default function MeusBilhetesPage() {
 
     fetchBookings();
 
-  }, [session, isAuthLoading, router, supabase, isFetchingBookings]); // Dependencies updated
+    // ** FIX: Removed isFetchingBookings from dependency array **
+  }, [session, isAuthLoading, router, supabase]);
 
   // filteredBookings logic remains the same
   const filteredBookings = useMemo(() => {
