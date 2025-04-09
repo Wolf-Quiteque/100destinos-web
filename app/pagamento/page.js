@@ -12,11 +12,13 @@ import {
   Loader2,
   ArrowLeft,
   AlertCircle,
-  User as UserIcon // Renamed User icon import
+  User as UserIcon, // Renamed User icon import
+  RefreshCw // Import icon for change button
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import BusTicketLoader from '../components/BusTicketLoader';
+import { Button } from '@/components/ui/button'; // Import Button component
 
 function PaymentScreenContent() {
   const supabase = createClientComponentClient();
@@ -30,7 +32,7 @@ function PaymentScreenContent() {
    const [loading, setLoading] = useState(true);
    const [uploadedFile, setUploadedFile] = useState(null);
   const [processingPayment, setProcessingPayment] = useState(false);
-  const [comprovativoErro, setComprovativoErro] = useState(false);
+  const [comprovativoErro, setComprovativoErro] = useState(false); // Keep error state
   const fileInputRef = useRef(null);
 
   const IBAN = '0055.0000.1009.6480.1012.9';
@@ -94,13 +96,11 @@ function PaymentScreenContent() {
 
           if (profileError) {
             console.error('Error fetching user profile:', profileError);
-            // Handle profile fetch error (e.g., show default or toast)
             toast({ title: "Erro", description: "Não foi possível carregar dados do perfil.", variant: "destructive" });
           } else {
             setUserProfile(profileData);
           }
         } else {
-           // Handle case where user is not logged in (should ideally be caught by middleware)
            console.warn("User not logged in on payment page.");
            router.push('/login'); // Redirect if no user
            return;
@@ -119,34 +119,27 @@ function PaymentScreenContent() {
   }, [bookingId, router, supabase, toast]); // Added toast to dependency array
 
   const handleFileUpload = async (e) => {
-
-
     const file = e.target.files[0];
-
     if (!file) return;
 
-
-    //await confirmBooking() // Directly confirm and redirect for now
-    // router.push(`/obrigado?bookingId=${bookingId}`); // Redirect happens inside confirmBooking
-
-   
-
-    // --- Start of commented out verification logic ---
-  
-    const maxSize = 1 * 1024 * 1024;
+    const maxSize = 1 * 1024 * 1024; // 1MB
     if (file.size > maxSize) {
       toast({
         variant: "destructive",
         title: "Ficheiro Grande",
-        description: "O documento selecionado é muito grande. Por favor, selecione um arquivo menor que 1 MB.",
+        description: "O documento selecionado é muito grande (Max: 1MB).",
       });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""; // Reset input on size error
+      }
       return;
     }
 
-    setProcessingPayment(true); // Use processingPayment state
-    setComprovativoErro(false); // Reset error state
-    setUploadedFile(file); // Show uploaded file name
+    setProcessingPayment(true);
+    setComprovativoErro(false); // Reset error state on new upload attempt
+    setUploadedFile(file); // Show uploaded file name immediately
 
+    // --- Start of verification logic ---
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -164,9 +157,11 @@ function PaymentScreenContent() {
       const comprovativoText = jsonResponse.text.replace(/\n/g, ' ').replace(/\s+/g, '');
 
       if (jsonResponse.original) {
-        // Simplified check - adjust value '1' if needed based on actual total price
-        const expectedTotalPriceString = bookingDetails?.total_price?.toFixed(2).replace('.', ','); // Format expected price
-        const hasTotal = jsonResponse.text.includes("1,00"); // Check against dynamic total price
+        const expectedTotalPriceString = bookingDetails?.total_price?.toFixed(2).replace('.', ',');
+        // **Important**: Ensure this check uses the actual total price dynamically
+        // const hasTotal = jsonResponse.text.includes(expectedTotalPriceString); // More robust check
+        const hasTotal = jsonResponse.text.includes(bookingDetails?.total_price?.toString().replace('.', ',')); // Basic check, might need refinement
+
         const hasReference = [
           "AO06.0055.0000.1009.6480.1012.9",
           "AO06 0055 0000 1009 6480 1012 9",
@@ -177,7 +172,6 @@ function PaymentScreenContent() {
         ].some(ref => jsonResponse.text.includes(ref));
 
         if (hasTotal && hasReference) {
-          // Check for duplicates (assuming glab-api checks for duplicates)
           const verificationResponse = await fetch(
             'https://glab-api.vercel.app/api/aef/comprovativos',
             {
@@ -189,9 +183,7 @@ function PaymentScreenContent() {
 
           if (verificationResponse.ok) {
             const duplicateCheckData = await verificationResponse.json();
-
             if (!duplicateCheckData || duplicateCheckData.length === 0) {
-              // Not a duplicate, add it
               await fetch(
                 'https://glab-api.vercel.app/api/aef/add',
                 {
@@ -200,26 +192,21 @@ function PaymentScreenContent() {
                   body: JSON.stringify({ data: comprovativoText })
                 }
               );
-
               await confirmBooking(); // Confirm booking in Supabase
-              // Redirect happens inside confirmBooking
+              // No need to set processing false here, page will redirect
               return; // Exit after successful confirmation
             } else {
-               // It's a duplicate
                setComprovativoErro(true);
                toast({ variant: "destructive", title: "Comprovativo Duplicado", description: "Este comprovativo já foi utilizado." });
             }
           } else {
-             // Error checking for duplicates
              throw new Error("Erro ao verificar duplicados.");
           }
         } else {
-           // Total or Reference mismatch
            setComprovativoErro(true);
-           toast({ variant: "destructive", title: "Comprovativo Inválido", description: "Referência ou valor total não corresponde." });
+           toast({ variant: "destructive", title: "Comprovativo Inválido", description: `Referência (${hasReference ? 'OK' : 'Não encontrada'}) ou valor total (${hasTotal ? 'OK' : 'Não corresponde'}) inválido.` });
         }
       } else {
-         // Could not read text from PDF
          setComprovativoErro(true);
          toast({ variant: "destructive", title: "Erro de Leitura", description: "Não foi possível ler o conteúdo do PDF." });
       }
@@ -230,18 +217,29 @@ function PaymentScreenContent() {
       toast({
         variant: "destructive",
         title: "Erro",
-        description: "Erro ao processar o documento. Tente novamente.",
+        description: `Erro ao processar o documento: ${error.message || 'Tente novamente.'}`,
       });
     } finally {
       setProcessingPayment(false); // Stop processing indicator
-      // Reset file input if there was an error to allow re-upload
+      // Reset file input ONLY if there was an error to allow re-upload
       if (comprovativoErro && fileInputRef.current) {
          fileInputRef.current.value = "";
-         setUploadedFile(null);
+         // Keep uploadedFile state to show the name of the failed file, but allow changing
+         // setUploadedFile(null); // Don't reset here, let the change button handle it
       }
     }
-  
-   // --- End of commented out verification logic ---
+    // --- End of verification logic ---
+  };
+
+  // Function to handle changing the file
+  const handleChangeFileClick = () => {
+    setUploadedFile(null);
+    setComprovativoErro(false); // Reset error state
+    setProcessingPayment(false); // Ensure processing is stopped
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""; // Clear the actual input value
+      fileInputRef.current.click(); // Open file dialog
+    }
   };
 
   const copyIBAN = () => {
@@ -251,18 +249,16 @@ function PaymentScreenContent() {
       description: "O IBAN foi copiado para a área de transferência.",
     });
   };
+
   if (loading) {
     return <BusTicketLoader />;
   }
 
-  // Ensure both bookingDetails and userProfile are loaded before rendering main content
   if (!bookingDetails || !userProfile) {
-    // Can show a more specific loading/error state if needed
     return <BusTicketLoader />; // Or return null or a specific message
   }
 
   const totalPrice = bookingDetails.total_price;
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-orange-800 p-4 md:p-8 relative">
@@ -278,7 +274,7 @@ function PaymentScreenContent() {
 
       <div className="max-w-4xl mx-auto space-y-6">
 
-        {/* User Details Section - Updated to show fetched profile */}
+        {/* User Details Section */}
         <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700">
           <h3 className="text-2xl font-bold text-white flex items-center mb-4">
             <UserIcon className="mr-2 text-orange-500" /> Detalhes do Comprador
@@ -301,6 +297,7 @@ function PaymentScreenContent() {
 
         {/* Payment Details Section */}
         <div className="relative group">
+          {/* ... (IBAN details remain the same) ... */}
           <div className="absolute -inset-0.5 bg-orange-500 rounded-2xl opacity-50 group-hover:opacity-75 transition duration-300 blur-sm"></div>
           <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-orange-500 transition-all duration-300">
             <div className="flex justify-between items-center mb-4">
@@ -309,7 +306,6 @@ function PaymentScreenContent() {
                 <h2 className="text-2xl font-bold text-white">Detalhes de Pagamento</h2>
               </div>
             </div>
-
             <div className="grid md:grid-cols-2 gap-4 text-white">
               <div>
                 <p className="text-sm text-gray-400">Total a Pagar</p>
@@ -335,11 +331,11 @@ function PaymentScreenContent() {
           </div>
         </div>
 
-
+        {/* Error Alert */}
         {comprovativoErro && (
           <Alert
             variant="destructive"
-            className="bg-red-600 text-white"
+            className="bg-red-600 text-white border-red-800" // Adjusted border
           >
             <AlertCircle className="h-4 w-4" color='#fff' />
             <AlertTitle className="text-white">
@@ -347,13 +343,13 @@ function PaymentScreenContent() {
             </AlertTitle>
             <AlertDescription className="text-white">
               <div className="font-medium">
-                Comprovativo falso/duplicado ou <i className="underline">valor não coincide com o montante a pagar.</i>
+                Verifique o ficheiro ou tente outro. <i className="underline">Valor pode não coincidir ou comprovativo já foi usado.</i>
               </div>
             </AlertDescription>
           </Alert>
         )}
 
-        {/* File Upload Section */}
+        {/* File Upload Section - Modified */}
         <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700">
           <h3 className="text-2xl font-bold text-white flex items-center mb-4">
             <Upload className="mr-2 text-orange-500" /> Comprovativo de Pagamento
@@ -361,39 +357,61 @@ function PaymentScreenContent() {
 
           <div
             className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-300
-            ${uploadedFile ? 'border-green-500 bg-green-500/10' : 'border-gray-600 hover:border-orange-500'}`}
+            ${uploadedFile && !comprovativoErro ? 'border-green-500 bg-green-500/10' : ''}
+            ${comprovativoErro ? 'border-red-500 bg-red-500/10' : ''}
+            ${!uploadedFile && !comprovativoErro ? 'border-gray-600 hover:border-orange-500' : ''}`}
           >
-            {uploadedFile ? (
-              <div className="flex items-center justify-center text-green-500">
-                <FileText className="mr-2" />
-                <span>{uploadedFile.name}</span>
-                <CheckCircle className="ml-2" />
+            {/* Hidden File Input */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              accept=".pdf"
+              className="hidden"
+              disabled={processingPayment} // Disable input while processing
+            />
+
+            {/* Loading State */}
+            {processingPayment && (
+              <div className="flex flex-col items-center justify-center text-gray-400">
+                <Loader2 className="h-8 w-8 animate-spin mb-2 text-orange-500" />
+                <span>A verificar comprovativo...</span>
               </div>
-            ) : (
-              <div>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  accept=".pdf"
-                  className="hidden"
-                />
-                <button
-                  onClick={() => fileInputRef.current.click()}
-                  className="text-white bg-orange-600 hover:bg-orange-700 px-6 py-2 rounded-full transition-colors"
-                  disabled={processingPayment} // Disable button while processing
+            )}
+
+            {/* Initial/Error State */}
+            {!processingPayment && (!uploadedFile || comprovativoErro) && (
+              <Button
+                onClick={handleChangeFileClick} // Use change handler for initial upload too
+                variant="default"
+                className="text-white bg-orange-600 hover:bg-orange-700 px-6 py-2 rounded-full transition-colors"
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                {comprovativoErro ? 'Tentar Novamente' : 'Carregar PDF'}
+              </Button>
+            )}
+
+            {/* Success State */}
+            {!processingPayment && uploadedFile && !comprovativoErro && (
+              <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between space-y-2 sm:space-y-0 sm:space-x-4">
+                <div className="flex items-center text-green-400"> {/* Adjusted color */}
+                  <FileText className="mr-2 flex-shrink-0" />
+                  <span className="truncate max-w-[200px] sm:max-w-xs">{uploadedFile.name}</span>
+                  <CheckCircle className="ml-2 flex-shrink-0" />
+                </div>
+                <Button
+                  onClick={handleChangeFileClick}
+                  variant="outline"
+                  size="sm"
+                  className="text-orange-500 border-orange-500 hover:bg-orange-500/10 hover:text-orange-400"
                 >
-                  {processingPayment ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  {processingPayment ? 'A Processar...' : 'Carregar PDF'}
-                </button>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Alterar
+                </Button>
               </div>
             )}
           </div>
         </div>
-
-        {/* Loading Indicator - Now uses processingPayment state */}
-        {/* Removed the general loading indicator here as it's handled by the BusTicketLoader */}
-
       </div>
     </div>
   );

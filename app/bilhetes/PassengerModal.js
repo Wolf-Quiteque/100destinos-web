@@ -16,7 +16,7 @@ import {
   UserPlus,
   Trash2,
   User,
-  IdCard,
+  // IdCard, // Removed as ID field is removed
   Calendar,
   Users,
   ArrowRight
@@ -34,12 +34,11 @@ const PassengerModal = ({
   const { toast } = useToast();
   const [profileLoading, setProfileLoading] = useState(false); // Loading state for profile fetch
 
-  // Default passenger structure
+  // Default passenger structure (idNumber removed)
   const defaultPassenger = {
     name: '',
     age: '',
     sex: '',
-    idNumber: '', // This will hold the ID for the passenger list item
     seat: null
    };
 
@@ -84,13 +83,11 @@ const PassengerModal = ({
              }
 
              // Pre-fill first passenger (buyer details) and contact info
-             // Note: We set the buyer's ID number in separate state for the read-only field
+             // idNumber removed from prefill
              setPassengers([{
                ...defaultPassenger,
                name: profileData.nome || '',
                sex: profileData.sexo || '',
-               // idNumber here remains '' initially or can be pre-filled if desired, but it's editable below
-               idNumber: '', // Keep passenger list ID optional by default
                age: calculatedAge,
              }]);
              setContactInfo({
@@ -117,6 +114,7 @@ const PassengerModal = ({
     if (isOpen) {
       fetchUserProfileAndPrefill();
     } else {
+      // Reset state when modal closes
       setPassengers([defaultPassenger]);
       setContactInfo({ name: '', email: '', phone: '' });
       setBuyerIdNumber('');
@@ -124,7 +122,7 @@ const PassengerModal = ({
       setIsSeatSelectionOpen(false);
       setProfileLoading(false);
     }
-  }, [isOpen, supabase]);
+  }, [isOpen, supabase]); // Removed defaultPassenger from deps as it's stable
 
   // Fetch seat availability separately
   useEffect(() => {
@@ -224,10 +222,10 @@ const PassengerModal = ({
        return;
     }
 
-    // Validate all passengers in the list
+    // Validate all passengers in the list (excluding idNumber)
     const firstInvalidPassenger = passengers.findIndex(p => !p.name || !p.age || !p.sex || !p.seat);
     if (firstInvalidPassenger !== -1) {
-      toast({ variant: "destructive", title: "Atenção", description: `Preencha todos os campos e selecione um assento para o Passageiro ${firstInvalidPassenger + 1}.` });
+      toast({ variant: "destructive", title: "Atenção", description: `Preencha Nome, Idade, Sexo e selecione um assento para o Passageiro ${firstInvalidPassenger + 1}.` });
       return;
     }
 
@@ -244,12 +242,12 @@ const PassengerModal = ({
     }
 
     try {
+      // Removed id_number from passengers_param payload
       const { data: bookingId, error } = await supabase.rpc('book_seats', {
         route_id_param: ticket.id,
         booking_date_param: new Date().toISOString().split('T')[0],
         passengers_param: passengers.map(p => ({
             name: p.name, age: parseInt(p.age, 10), sex: p.sex,
-            id_number: p.idNumber || null, // Pass passenger list ID (optional)
             seat_number: p.seat
         })),
         total_passengers_param: passengers.length,
@@ -351,16 +349,7 @@ const PassengerModal = ({
                             <option value="" disabled>Selecione...</option> <option value="M">Masculino</option> <option value="F">Feminino</option>
                           </select>
                         </div>
-                        {/* ID Number (Optional and editable for ALL passengers in this list) */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">
-                            Nº Identificação <span className="text-gray-400">(Opcional)</span>
-                          </label>
-                          <input type="text" value={passenger.idNumber}
-                            onChange={(e) => updatePassenger(index, 'idNumber', e.target.value)}
-                            placeholder="Número do BI ou Passaporte"
-                            className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500" />
-                        </div>
+                        {/* ID Number field removed */}
                         {/* Seat Selection Button (For all passengers) */}
                         <div className="md:col-span-2 mt-2">
                           <Button onClick={() => openSeatSelection(index)} variant="outline"
