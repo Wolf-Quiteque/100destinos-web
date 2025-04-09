@@ -4,25 +4,20 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button"; // Added Button
-import { Loader2, Ticket, MapPin, Clock, Calendar as CalendarIcon, AlertCircle, Bus, Trash2 } from 'lucide-react'; // Added icons & Trash2
-import { format, isToday, isFuture, isPast, parseISO, parse } from 'date-fns'; // date-fns for date comparisons
+import { Button } from "@/components/ui/button";
+import { Loader2, Ticket, MapPin, Clock, Calendar as CalendarIcon, AlertCircle, Bus } from 'lucide-react'; // Removed Trash2 icon
+import { format, isToday, isFuture, isPast, parseISO } from 'date-fns'; // Removed unused 'parse'
+import { useAuth } from '@/context/AuthContext'; // Import useAuth
 
-// Helper function to combine date and time and check against today/future/past
+// Helper function (remains the same)
 const getCombinedDateTime = (bookingDateStr, timeStr) => {
+  // ... (implementation is unchanged)
   if (!bookingDateStr || !timeStr) return null;
-  // Assuming timeStr is HH:MM:SS or HH:MM
   const timeParts = timeStr.split(':');
-  if (timeParts.length < 2) return null; // Invalid time format
-
+  if (timeParts.length < 2) return null;
   try {
-    // Combine date string with time string
     const dateTimeString = `${bookingDateStr}T${timeStr}`;
-    // Parse the combined string. If it doesn't include timezone, parseISO might assume UTC or local.
-    // Be explicit if needed, or ensure bookingDateStr and timeStr result in a standard format.
-    // Let's assume the date is already in a format parseISO understands (like YYYY-MM-DD)
-    // and time is HH:MM:SS.
-    const dateTime = parseISO(dateTimeString); // This might need adjustment based on actual formats
+    const dateTime = parseISO(dateTimeString);
     return dateTime;
   } catch (e) {
     console.error("Error parsing date/time:", e, { bookingDateStr, timeStr });
@@ -30,10 +25,10 @@ const getCombinedDateTime = (bookingDateStr, timeStr) => {
   }
 };
 
- // Removed onDelete prop
- const BookingCard = ({ booking }) => {
-   const router = useRouter(); // Get router instance
-   const route = booking.bus_routes;
+// BookingCard component (remains mostly the same, delete logic already removed)
+const BookingCard = ({ booking }) => {
+  const router = useRouter();
+  const route = booking.bus_routes;
   const company = route?.bus_companies;
 
   if (!route) {
@@ -46,18 +41,15 @@ const getCombinedDateTime = (bookingDateStr, timeStr) => {
   }
 
   const bookingDate = booking.booking_date ? format(parseISO(booking.booking_date), 'dd/MM/yyyy') : 'N/A';
-  const departureTime = route.departure_time ? route.departure_time.substring(0, 5) : 'N/A'; // Format HH:MM
-  const arrivalTime = route.arrival_time ? route.arrival_time.substring(0, 5) : 'N/A'; // Format HH:MM
+  const departureTime = route.departure_time ? route.departure_time.substring(0, 5) : 'N/A';
+  const arrivalTime = route.arrival_time ? route.arrival_time.substring(0, 5) : 'N/A';
 
-  // Handlers for buttons
   const handlePayClick = () => {
-     router.push(`/pagamento?bookingId=${booking.id}`);
-   };
+    router.push(`/pagamento?bookingId=${booking.id}`);
+  };
 
-   // Removed handleDeleteClick function
-
-   const getStatusBadge = (status) => {
-     switch (status) {
+  const getStatusBadge = (status) => {
+    switch (status) {
       case 'confirmed':
         return <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">Confirmado</span>;
       case 'pending':
@@ -72,6 +64,7 @@ const getCombinedDateTime = (bookingDateStr, timeStr) => {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow duration-300">
       <div className="p-4">
+        {/* Card content remains the same */}
         <div className="flex justify-between items-start mb-3">
           <div className="flex items-center space-x-2">
             {company?.logo_url ? (
@@ -83,103 +76,114 @@ const getCombinedDateTime = (bookingDateStr, timeStr) => {
           </div>
           {getStatusBadge(booking.booking_status)}
         </div>
-
+        {/* Details grid remains the same */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 text-sm">
-          <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
-            <MapPin size={16} className="text-orange-500" />
-            <div>
-              <span className="block text-xs text-gray-400 dark:text-gray-500">Origem</span>
-              <span className="font-medium">{route.origin}</span>
+            {/* Origin */}
+            <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
+                <MapPin size={16} className="text-orange-500" />
+                <div>
+                <span className="block text-xs text-gray-400 dark:text-gray-500">Origem</span>
+                <span className="font-medium">{route.origin}</span>
+                </div>
             </div>
-          </div>
-          <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
-            <MapPin size={16} className="text-orange-500" />
-            <div>
-              <span className="block text-xs text-gray-400 dark:text-gray-500">Destino</span>
-              <span className="font-medium">{route.destination}</span>
+            {/* Destination */}
+            <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
+                <MapPin size={16} className="text-orange-500" />
+                <div>
+                <span className="block text-xs text-gray-400 dark:text-gray-500">Destino</span>
+                <span className="font-medium">{route.destination}</span>
+                </div>
             </div>
-          </div>
-          <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
-            <CalendarIcon size={16} className="text-orange-500" />
-            <div>
-              <span className="block text-xs text-gray-400 dark:text-gray-500">Data</span>
-              <span className="font-medium">{bookingDate}</span>
+            {/* Date */}
+            <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
+                <CalendarIcon size={16} className="text-orange-500" />
+                <div>
+                <span className="block text-xs text-gray-400 dark:text-gray-500">Data</span>
+                <span className="font-medium">{bookingDate}</span>
+                </div>
             </div>
-          </div>
         </div>
-
+        {/* Times and Seats grid remains the same */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-           <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
-             <Clock size={16} className="text-orange-500" />
-             <div>
-               <span className="block text-xs text-gray-400 dark:text-gray-500">Partida</span>
-               <span className="font-medium">{departureTime}</span>
-             </div>
-           </div>
-           <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
-             <Clock size={16} className="text-orange-500" />
-             <div>
-               <span className="block text-xs text-gray-400 dark:text-gray-500">Chegada</span>
-               <span className="font-medium">{arrivalTime}</span>
-             </div>
-           </div>
-           <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
-             <Ticket size={16} className="text-orange-500" />
-             <div>
-               <span className="block text-xs text-gray-400 dark:text-gray-500">Assentos</span>
-               <span className="font-medium">{booking.selected_seats?.join(', ') || 'N/A'}</span>
-             </div>
-           </div>
+            {/* Departure Time */}
+            <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
+                <Clock size={16} className="text-orange-500" />
+                <div>
+                <span className="block text-xs text-gray-400 dark:text-gray-500">Partida</span>
+                <span className="font-medium">{departureTime}</span>
+                </div>
+            </div>
+            {/* Arrival Time */}
+            <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
+                <Clock size={16} className="text-orange-500" />
+                <div>
+                <span className="block text-xs text-gray-400 dark:text-gray-500">Chegada</span>
+                <span className="font-medium">{arrivalTime}</span>
+                </div>
+            </div>
+            {/* Seats */}
+            <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
+                <Ticket size={16} className="text-orange-500" />
+                <div>
+                <span className="block text-xs text-gray-400 dark:text-gray-500">Assentos</span>
+                <span className="font-medium">{booking.selected_seats?.join(', ') || 'N/A'}</span>
+                </div>
+            </div>
         </div>
       </div>
+      {/* Footer with total price remains the same */}
       <div className="bg-gray-50 dark:bg-gray-700 px-4 py-2 flex justify-end items-center">
         <span className="text-sm text-gray-500 dark:text-gray-400 mr-4">Total:</span>
         <span className="text-lg font-bold text-orange-600 dark:text-orange-400">
           {booking.total_price ? booking.total_price.toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' }) : 'N/A'}
         </span>
       </div>
-      {/* Conditional Buttons for Pending Status */}
+      {/* Conditional Button for Pending Status (Pay only) */}
       {booking.booking_status === 'pending' && (
         <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 flex justify-end items-center space-x-2 border-t border-gray-200 dark:border-gray-600">
-           <Button
-             variant="outline"
-             size="sm"
-             className="bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 h-8" // Adjusted size
-             onClick={handlePayClick}
-           >
-              Pagar
-            </Button>
-            {/* Eliminar button removed */}
-          </div>
-       )}
-     </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 h-8"
+            onClick={handlePayClick}
+          >
+            Pagar
+          </Button>
+        </div>
+      )}
+    </div>
   );
 };
-
 
 export default function MeusBilhetesPage() {
   const supabase = createClientComponentClient();
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const { session, user, isLoading: isAuthLoading } = useAuth(); // Use AuthContext
   const [bookings, setBookings] = useState([]);
   const [error, setError] = useState(null);
-  const [user, setUser] = useState(null);
+  const [isFetchingBookings, setIsFetchingBookings] = useState(false); // Separate loading state for bookings fetch
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      setLoading(true);
+    // If auth state is still loading, wait
+    if (isAuthLoading) {
+      return;
+    }
+
+    // If no session after loading, redirect to login
+    if (!session) {
+      console.log('No session found, redirecting to login.');
+      router.push('/login');
+      return;
+    }
+
+    // Fetch bookings only if we have a session and user
+    const fetchBookings = async () => {
+      // Prevent fetching if already fetching
+      if (isFetchingBookings) return;
+
+      console.log('Session found, fetching bookings for user:', session.user.id);
+      setIsFetchingBookings(true);
       setError(null);
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-      if (sessionError || !session) {
-        console.error('Error fetching session or no session:', sessionError);
-        // Assuming toast is available globally or handle error differently
-        // toast({ title: "Autenticação Necessária", description: "Faça login para ver seus bilhetes.", variant: "destructive" });
-        router.push('/login');
-        return;
-      }
-
-      setUser(session.user); // Store user object
 
       try {
         const { data: bookingData, error: bookingError } = await supabase
@@ -205,71 +209,68 @@ export default function MeusBilhetesPage() {
               )
             )
           `)
-          .eq('profile_id', session.user.id) // Filter by logged-in user's ID
-          .order('booking_date', { ascending: false }); // Order by travel date
+          .eq('profile_id', session.user.id) // Use user ID from session
+          .order('booking_date', { ascending: false });
 
         if (bookingError) throw bookingError;
 
-        // console.log("Fetched Bookings:", bookingData); // Debugging log
         setBookings(bookingData || []);
+        console.log("Fetched Bookings:", bookingData?.length);
 
       } catch (err) {
         console.error('Error fetching bookings:', err);
         setError('Falha ao carregar os bilhetes. Tente novamente.');
-        // Consider adding a toast message here as well
       } finally {
-        setLoading(false);
+        setIsFetchingBookings(false);
       }
     };
 
-    fetchUserData();
-  }, [supabase, router]); // Add toast if used for errors
+    fetchBookings();
 
+  }, [session, isAuthLoading, router, supabase, isFetchingBookings]); // Dependencies updated
+
+  // filteredBookings logic remains the same
   const filteredBookings = useMemo(() => {
-    // No need for 'now' here as we compare dates directly
-
     const activo = bookings.filter(b => {
-      if (b.booking_status !== 'confirmed') return false;
-      try {
-        const bookingDateOnly = parseISO(b.booking_date); // Parse YYYY-MM-DD date
-        // Keep if confirmed and the date is today or in the future
-        return isToday(bookingDateOnly) || isFuture(bookingDateOnly);
-      } catch (e) {
-        console.error("Error parsing booking_date for activo filter:", e, b.booking_date);
-        return false; // Exclude if date parsing fails
-      }
+        if (b.booking_status !== 'confirmed') return false;
+        try {
+            const bookingDateOnly = parseISO(b.booking_date);
+            return isToday(bookingDateOnly) || isFuture(bookingDateOnly);
+        } catch (e) {
+            console.error("Error parsing booking_date for activo filter:", e, b.booking_date);
+            return false;
+        }
     });
 
     const pendente = bookings.filter(b => b.booking_status === 'pending');
 
-    // Updated historico filter: includes all past bookings (confirmed, pending, cancelled)
     const historico = bookings.filter(b => {
-      try {
-        const bookingDateOnly = parseISO(b.booking_date); // Parse YYYY-MM-DD date
-        // Keep if the date is in the past, regardless of status
-        return isPast(bookingDateOnly);
-      } catch (e) {
-        console.error("Error parsing booking_date for historico filter:", e, b.booking_date);
-        return false; // Exclude if date parsing fails
-      }
+        try {
+            const bookingDateOnly = parseISO(b.booking_date);
+            return isPast(bookingDateOnly);
+        } catch (e) {
+            console.error("Error parsing booking_date for historico filter:", e, b.booking_date);
+            return false;
+        }
     });
 
-     return { activo, pendente, historico };
-   }, [bookings]);
+    return { activo, pendente, historico };
+  }, [bookings]);
 
-   // Removed handleDeleteBooking function
-
-   const renderBookingList = (list) => {
-     if (list.length === 0) {
+  // renderBookingList remains the same
+  const renderBookingList = (list) => {
+    if (list.length === 0) {
       return <p className="text-center text-gray-500 dark:text-gray-400 italic mt-4">Nenhum bilhete encontrado nesta categoria.</p>;
     }
-     return (
-       <div className="space-y-4">
-         {/* Removed onDelete prop from BookingCard */}
-         {list.map(booking => <BookingCard key={booking.id} booking={booking} />)}
-       </div>
-     );
+    return (
+      <div className="space-y-4">
+        {list.map(booking => <BookingCard key={booking.id} booking={booking} />)}
+      </div>
+    );
   };
+
+  // Show loader if either auth state is loading OR bookings are being fetched
+  const showLoading = isAuthLoading || isFetchingBookings;
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 md:p-8 pb-20 md:pb-8">
@@ -277,7 +278,7 @@ export default function MeusBilhetesPage() {
         Meus Bilhetes
       </h1>
 
-      {loading ? (
+      {showLoading ? (
         <div className="flex justify-center items-center py-10">
           <Loader2 className="h-12 w-12 text-orange-500 animate-spin" />
         </div>
@@ -287,7 +288,8 @@ export default function MeusBilhetesPage() {
            <span>{error}</span>
          </div>
       ) : (
-        <Tabs defaultValue="activo" className="w-full max-w-3xl mx-auto"> {/* Increased max-width */}
+        // Tabs rendering remains the same
+        <Tabs defaultValue="activo" className="w-full max-w-3xl mx-auto">
           <TabsList className="grid w-full grid-cols-3 bg-gray-200 dark:bg-gray-800 rounded-lg mb-4">
             <TabsTrigger value="activo" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white dark:data-[state=active]:bg-orange-600">
               <div className="flex items-center justify-center space-x-2">

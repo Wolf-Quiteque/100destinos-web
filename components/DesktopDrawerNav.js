@@ -20,11 +20,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-// Removed Avatar imports as they are no longer used for the trigger
-// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Menu, User, LogOut, Compass, Bus, Search, Ticket, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from '@/context/AuthContext'; // Import useAuth
 
 // Re-use navItems from MobileAppBar logic
 const navItems = [
@@ -36,69 +35,53 @@ const navItems = [
 ];
 
 export default function DesktopDrawerNav() {
-  const supabase = createClientComponentClient();
+  const supabase = createClientComponentClient(); // Keep for profile fetch & logout
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
-  const [user, setUser] = useState(null);
+  const { user, session, isLoading: isAuthLoading } = useAuth(); // Use context
+
   const [profile, setProfile] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
+  const [loadingProfile, setLoadingProfile] = useState(false); // Separate loading state for profile
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
+  // Effect to fetch profile when user context changes
   useEffect(() => {
-    const getUserProfile = async () => {
-      setLoadingUser(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      const currentUser = session?.user;
-      setUser(currentUser);
+    const fetchProfile = async () => {
+      if (user) { // Only fetch if user exists from context
+        setLoadingProfile(true);
+        setProfile(null); // Clear old profile while fetching
+        try {
+          const { data: profileData, error } = await supabase
+            .from('profiles')
+            .select('nome') // Fetch name
+            .eq('id', user.id)
+            .single();
 
-      if (currentUser) {
-        const { data: profileData, error } = await supabase
-          .from('profiles')
-          .select('nome') // Fetch name
-          .eq('id', currentUser.id)
-          .single();
-
-        if (error) {
-          console.error('Error fetching profile for nav:', error);
-        } else {
-          setProfile(profileData);
+          if (error) {
+            console.error('Error fetching profile for nav:', error);
+            setProfile(null);
+          } else {
+            setProfile(profileData);
+          }
+        } catch (err) {
+           console.error('Unexpected error fetching profile:', err);
+           setProfile(null);
+        } finally {
+          setLoadingProfile(false);
         }
       } else {
         setProfile(null); // Clear profile if no user
+        setLoadingProfile(false); // Ensure loading is false
       }
-      setLoadingUser(false);
     };
 
-    getUserProfile();
-
-    // Listen for auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        const currentUser = session?.user;
-        setUser(currentUser);
-        if (!currentUser) {
-          setProfile(null); // Clear profile on logout
-          setIsPopoverOpen(false); // Close popover on logout
-        } else if (event === 'SIGNED_IN') {
-          // Re-fetch profile if user logs in
-          setLoadingUser(true); // Show loading while fetching new profile
-           const { data: profileData, error } = await supabase
-            .from('profiles')
-            .select('nome')
-            .eq('id', currentUser.id)
-            .single();
-           if (!error) setProfile(profileData);
-           setLoadingUser(false);
-        }
-      }
-    );
-
-    return () => {
-      authListener?.subscription?.unsubscribe();
-    };
-  }, [supabase]);
+    // Don't fetch profile if auth is still loading
+    if (!isAuthLoading) {
+        fetchProfile();
+    }
+  }, [user, isAuthLoading, supabase]); // Depend on user from context
 
   const handleLogout = async () => {
     setIsPopoverOpen(false); // Close popover first
@@ -108,15 +91,13 @@ export default function DesktopDrawerNav() {
       toast({ title: "Erro ao Sair", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Sessão terminada." });
-      setUser(null);
-      setProfile(null);
+      // Context listener will handle setting user/profile to null
       router.push('/login'); // Redirect to login after logout
       router.refresh(); // Ensure layout state updates
     }
   };
 
-  // getInitials function might not be needed anymore if Avatar is removed
-  // const getInitials = (name) => { ... };
+  const isLoading = isAuthLoading || loadingProfile; // Combined loading state
 
   return (
     // Use hidden and md:flex to show only on medium screens and up
@@ -141,6 +122,10 @@ export default function DesktopDrawerNav() {
           </div>
           <nav className="flex-grow px-4 py-4 space-y-2 overflow-y-auto">
             {navItems.map((item) => {
+              // Conditionally hide Perfil/Bilhetes if not logged in
+              if (['/perfil', '/meus-bilhetes'].includes(item.href) && !user && !isAuthLoading) {
+                return null;
+              }
               const isActive = pathname === item.href;
               return (
                 <DrawerClose key={item.label} asChild>
@@ -172,9 +157,9 @@ export default function DesktopDrawerNav() {
 
       {/* Right: Profile/Login */}
       <div className="relative">
-        {loadingUser ? (
+        {isLoading ? ( // Use combined loading state
           <div className="h-12 w-12 rounded-full bg-gray-300/50 animate-pulse"></div>
-        ) : user ? (
+        ) : user ? ( // Use user from context
           <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
             <PopoverTrigger asChild>
               {/* Style: Orange background with opacity, white icon */}
@@ -187,10 +172,8 @@ export default function DesktopDrawerNav() {
               <div className="space-y-1">
                 <div className="px-3 py-2 border-b border-gray-200 mb-1">
                   <p className="text-sm font-semibold text-gray-900 truncate">
-                    {profile?.nome || user.email}
+                    {profile?.nome || user.email} {/* Display profile name or email */}
                   </p>
-                  {/* Removed duplicate email display */}
-                  {/* <p className="text-xs text-gray-500 truncate">{user.email}</p> */}
                 </div>
                 <Link
                   href="/perfil"

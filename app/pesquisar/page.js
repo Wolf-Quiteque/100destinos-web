@@ -1,22 +1,25 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  MapPin, 
-  Calendar, 
-  ArrowRight, 
+import {
+  MapPin,
+  Calendar,
+  ArrowRight,
   Bus,
   Loader2 // Added for loading state
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'; // Added Supabase client
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'; // Keep for route fetching
 import { useToast } from "@/hooks/use-toast"; // Added useToast
+import { useAuth } from '@/context/AuthContext'; // Import useAuth
 import BustTicketLoaderOld from '../components/BustTicketLoaderOld';
 
 export default function BusTicketSearch() {
   const router = useRouter();
-  const supabase = createClientComponentClient(); // Initialized Supabase client
+  const { session, isLoading: isAuthLoading } = useAuth(); // Get session from context
+  // Keep supabase client instance specifically for fetching routes in this component
+  const supabase = createClientComponentClient();
   const [departure, setDeparture] = useState('');
   const [destination, setDestination] = useState('');
   const [date, setDate] = useState('');
@@ -102,7 +105,7 @@ export default function BusTicketSearch() {
       setDeparture('');
       setDestination('');
     }
-  }, [allRoutes, userType, departure]); // Dependencies: allRoutes, userType, and departure // Removed destination dependency as it's handled within
+  }, [allRoutes, userType, departure]); // Dependencies: allRoutes, userType, and departure
 
   // Effect to check if a return route exists
   useEffect(() => {
@@ -124,12 +127,12 @@ export default function BusTicketSearch() {
     }
   }, [departure, destination, allRoutes, userType]); // Dependencies
 
-  // Effect to handle redirection after animation based on auth status
+  // Effect to handle redirection after animation based on auth status from context
   useEffect(() => {
-    const handleRedirect = async () => {
-      // Check authentication status right before redirecting
-      const { data: { session } } = await supabase.auth.getSession();
-
+    // Use session from useAuth() context directly
+    const handleRedirect = () => {
+      // No need to check isAuthLoading here, as the context handles the initial load.
+      // We only care about the session state *when* the animation reaches stage 6.
       if (session) {
         // User is authenticated, proceed to bilhetes page
         const queryParams = new URLSearchParams({
@@ -158,7 +161,8 @@ export default function BusTicketSearch() {
     if (searchAnimationStage === 6) {
       handleRedirect();
     }
-  }, [searchAnimationStage, supabase, router, departure, destination, date, isRoundTrip, returnDate, toast]); // Added dependencies
+    // Dependencies: The stage, the session state from context, and all data needed for redirection
+  }, [searchAnimationStage, session, router, departure, destination, date, isRoundTrip, returnDate, toast]);
 
 
   // Remove hardcoded arrays as they are no longer needed
@@ -195,9 +199,9 @@ export default function BusTicketSearch() {
   };
 
   const createSequentialSlideVariants = (exitDirection = -1) => ({
-    initial: { 
-      opacity: 1, 
-      x: 0 
+    initial: {
+      opacity: 1,
+      x: 0
     },
     animate: {
       opacity: 0,
@@ -210,18 +214,18 @@ export default function BusTicketSearch() {
   });
 
   const fallVariants = {
-    initial: { 
-      opacity: 0, 
+    initial: {
+      opacity: 0,
       y: -100,
       rotate: Math.random() * 20 - 10
     },
-    animate: { 
-      opacity: 1, 
+    animate: {
+      opacity: 1,
       y: 0,
       rotate: 0,
-      transition: { 
-        type: 'spring', 
-        stiffness: 100, 
+      transition: {
+        type: 'spring',
+        stiffness: 100,
         damping: 10,
         delay: 0.8
       }
@@ -232,14 +236,14 @@ export default function BusTicketSearch() {
 
   return (
     // Added pb-20 md:pb-0 for app bar spacing on mobile
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-orange-800 pb-20 md:pb-0"> 
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-orange-800 pb-20 md:pb-0">
       <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
           // Removed card styling classes (bg, backdrop, border, rounded, shadow, p-6)
-          className="w-full max-w-md" 
+          className="w-full max-w-md"
         >
           {searchAnimationStage < 6 ? (
            <form onSubmit={handleSearch} className="space-y-4">
@@ -249,7 +253,7 @@ export default function BusTicketSearch() {
                  <Loader2 className="h-12 w-12 text-orange-500 animate-spin" />
                </div>
              )}
-             <motion.div 
+             <motion.div
                variants={createSequentialSlideVariants()}
                initial="initial"
                animate={searchAnimationStage > 0 ? "animate" : "initial"}
@@ -261,18 +265,18 @@ export default function BusTicketSearch() {
                </h2>
              </motion.div>
 
-             <motion.div 
+             <motion.div
                variants={createSequentialSlideVariants()}
                initial="initial"
                animate={searchAnimationStage > 1 ? "animate" : "initial"}
                 className="relative"
              >
                {/* Changed label text color */}
-               <label className="block text-white mb-2 flex items-center"> 
+               <label className="block text-white mb-2 flex items-center">
                  <MapPin className="mr-2 text-orange-500" size={20} />
                  Origem
                </label>
-               <select 
+               <select
                  value={departure}
                  onChange={(e) => setDeparture(e.target.value)}
                  // Updated select styling
@@ -291,7 +295,7 @@ export default function BusTicketSearch() {
                 </select>
               </motion.div>
 
-             <motion.div 
+             <motion.div
                variants={createSequentialSlideVariants()}
                initial="initial"
                animate={searchAnimationStage > 2 ? "animate" : "initial"}
@@ -302,7 +306,7 @@ export default function BusTicketSearch() {
                  <MapPin className="mr-2 text-orange-500" size={20} />
                  Destino
                </label>
-               <select 
+               <select
                  value={destination}
                  onChange={(e) => setDestination(e.target.value)}
                  // Updated select styling
@@ -321,7 +325,7 @@ export default function BusTicketSearch() {
                 </select>
               </motion.div>
 
-             <motion.div 
+             <motion.div
                variants={createSequentialSlideVariants()}
                initial="initial"
                animate={searchAnimationStage > 3 ? "animate" : "initial"}
@@ -333,7 +337,7 @@ export default function BusTicketSearch() {
                    <div className="flex items-center space-x-4 justify-center"> {/* Centered radio buttons */}
                       {/* Changed label text color */}
                      <label className="flex items-center text-white cursor-pointer">
-                       <input 
+                       <input
                          type="radio"
                          name="tripType" // Added name for grouping
                         checked={!isRoundTrip}
@@ -345,7 +349,7 @@ export default function BusTicketSearch() {
                      </label>
                       {/* Changed label text color */}
                      <label className={`flex items-center text-white ${!returnRouteExists || loadingRoutes ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
-                       <input 
+                       <input
                          type="radio"
                          name="tripType" // Added name for grouping
                         checked={isRoundTrip}
@@ -368,7 +372,7 @@ export default function BusTicketSearch() {
                       <Calendar className="mr-2 text-orange-500" size={20} />
                       Data de Partida
                     </label>
-                    <input 
+                    <input
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
@@ -387,7 +391,7 @@ export default function BusTicketSearch() {
                         <Calendar className="mr-2 text-orange-500" size={20} />
                         Data de Retorno
                       </label>
-                      <input 
+                      <input
                         type="date"
                         value={returnDate || ''}
                         onChange={(e) => setReturnDate(e.target.value)}
@@ -410,7 +414,7 @@ export default function BusTicketSearch() {
                whileTap={{ scale: 0.95 }}
                 type="submit"
                 // Changed py-1.5 to py-1
-                className={`w-full bg-orange-600 text-white py-1 px-4 rounded-xl font-bold uppercase tracking-wide 
+                className={`w-full bg-orange-600 text-white py-1 px-4 rounded-xl font-bold uppercase tracking-wide
                 hover:bg-orange-700 transition-colors duration-300 flex items-center justify-center space-x-2
                 ${loadingRoutes ? 'opacity-50 cursor-not-allowed' : ''}`} // Style when loading
                 disabled={loadingRoutes} // Disable button while loading

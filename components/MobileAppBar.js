@@ -4,13 +4,14 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation'; // Import useRouter
 import { Compass, Bus, Search, Ticket, User, X } from 'lucide-react'; // Import X icon
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext'; // Import useAuth
 
-const navItems = [
+const baseNavItems = [
   { href: '/', label: 'Explora', icon: Compass },
-  { href: '/viagens', label: 'Viagens', icon: Bus },     // Changed href and label, icon already changed above
+  { href: '/viagens', label: 'Viagens', icon: Bus },
   { href: '/pesquisar', label: 'Pesquisar', icon: Search },
-  { href: '/meus-bilhetes', label: 'Bilhetes', icon: Ticket }, // Changed href
-  { href: '/perfil', label: 'Perfil', icon: User },       // Changed href
+  { href: '/meus-bilhetes', label: 'Bilhetes', icon: Ticket, requiresAuth: true }, // Mark as requiring auth
+  { href: '/perfil', label: 'Perfil', icon: User, requiresAuth: true }, // Mark as requiring auth
 ];
 
 // Paths where the MobileAppBar should be hidden
@@ -19,16 +20,26 @@ const hiddenPaths = ['/bilhetes', '/pagamento', '/login', '/signup']; // Added l
 export default function MobileAppBar() {
   const pathname = usePathname();
   const router = useRouter(); // Initialize router
+  const { user, isLoading: isAuthLoading } = useAuth(); // Use context
 
   const isPesquisarPage = pathname === '/pesquisar';
 
   // Check if the current path starts with any of the hidden paths
-  // Keep /pesquisar visible, but handle its special layout below
   const isHidden = hiddenPaths.some(path => pathname.startsWith(path) && path !== '/pesquisar');
 
   if (isHidden) {
     return null; // Don't render the component if the path matches
   }
+
+  // Filter nav items based on authentication status
+  const navItems = baseNavItems.filter(item => {
+    // If item requires auth, only show if user exists and auth is not loading
+    if (item.requiresAuth) {
+      return !isAuthLoading && !!user;
+    }
+    // Otherwise, always show
+    return true;
+  });
 
   // Specific layout for /pesquisar page - Just the button
   if (isPesquisarPage) {
@@ -53,6 +64,7 @@ export default function MobileAppBar() {
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-orange-500 shadow-lg z-50 rounded-t-2xl"> {/* Reverted height and rounding */}
       <div className="flex justify-around items-center h-full max-w-md mx-auto px-2">
+        {/* Render filtered nav items */}
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (

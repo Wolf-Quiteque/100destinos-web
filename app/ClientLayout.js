@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import InstallPwaButton from '@/app/components/InstallPwaButton';
 import MobileAppBar from '@/components/MobileAppBar';
 import DesktopDrawerNav from '@/components/DesktopDrawerNav'; // Import the new component
+import { AuthProvider } from '@/context/AuthContext'; // Import the AuthProvider
 
 export default function ClientLayout({ children }) {
   const pathname = usePathname();
@@ -16,7 +17,7 @@ export default function ClientLayout({ children }) {
   const shouldHideNav = hiddenNavPaths.includes(pathname);
 
   return (
-    <>
+    <AuthProvider> {/* Wrap content with AuthProvider */}
       {children}
       {/* Render client-side components here */}
       <InstallPwaButton />
@@ -32,6 +33,6 @@ export default function ClientLayout({ children }) {
       )}
 
       <Toaster />
-    </>
+    </AuthProvider>
   );
 }
