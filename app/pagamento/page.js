@@ -126,7 +126,7 @@ function PaymentScreenContent() {
     if (!file) return;
 
 
-    await confirmBooking() // Directly confirm and redirect for now
+    //await confirmBooking() // Directly confirm and redirect for now
     // router.push(`/obrigado?bookingId=${bookingId}`); // Redirect happens inside confirmBooking
 
    
