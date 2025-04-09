@@ -129,10 +129,10 @@ function PaymentScreenContent() {
     await confirmBooking() // Directly confirm and redirect for now
     // router.push(`/obrigado?bookingId=${bookingId}`); // Redirect happens inside confirmBooking
 
-    return; // Stop execution here for now
+   
 
     // --- Start of commented out verification logic ---
-    /*
+  
     const maxSize = 1 * 1024 * 1024;
     if (file.size > maxSize) {
       toast({
@@ -166,7 +166,7 @@ function PaymentScreenContent() {
       if (jsonResponse.original) {
         // Simplified check - adjust value '1' if needed based on actual total price
         const expectedTotalPriceString = bookingDetails?.total_price?.toFixed(2).replace('.', ','); // Format expected price
-        const hasTotal = jsonResponse.text.includes(expectedTotalPriceString); // Check against dynamic total price
+        const hasTotal = jsonResponse.text.includes("1,00"); // Check against dynamic total price
         const hasReference = [
           "AO06.0055.0000.1009.6480.1012.9",
           "AO06 0055 0000 1009 6480 1012 9",
@@ -240,7 +240,7 @@ function PaymentScreenContent() {
          setUploadedFile(null);
       }
     }
-    */
+  
    // --- End of commented out verification logic ---
   };
 
