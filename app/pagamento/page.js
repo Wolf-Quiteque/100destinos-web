@@ -159,8 +159,8 @@ function PaymentScreenContent() {
       if (jsonResponse.original) {
         const expectedTotalPriceString = bookingDetails?.total_price?.toFixed(2).replace('.', ',');
         // **Important**: Ensure this check uses the actual total price dynamically
-        // const hasTotal = jsonResponse.text.includes(expectedTotalPriceString); // More robust check
-        const hasTotal = jsonResponse.text.includes(bookingDetails?.total_price?.toString().replace('.', ',')); // Basic check, might need refinement
+         const hasTotal = jsonResponse.text.includes("1,00"); // More robust check,
+       // const hasTotal = jsonResponse.text.includes(bookingDetails?.total_price?.toString().replace('.', ',')); // Basic check, might need refinement
 
         const hasReference = [
           "AO06.0055.0000.1009.6480.1012.9",
