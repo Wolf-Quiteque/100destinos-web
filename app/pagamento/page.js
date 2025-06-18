@@ -42,22 +42,86 @@ function PaymentScreenContent() {
     if (!bookingId) return;
 
     try {
-      const { error } = await supabase
+      // The bookingData is already fetched in the useEffect and available in state.
+      // We need to ensure it's available here.
+      if (!bookingDetails || !userProfile) {
+        console.error('Booking details or user profile not available for confirmation.');
+        throw new Error('Missing booking details or user profile.');
+      }
+
+      // Update booking status in Supabase
+      const { error: updateBookingError } = await supabase
         .from('bookings')
         .update({ booking_status: 'confirmed' })
         .eq('id', bookingId);
 
-      if (error) throw error;
+      if (updateBookingError) throw updateBookingError;
+
+      // Check if the company is "md freitas"
+      const mdFreitasCompanyId = 'c154caa3-b54c-4ae3-b8bd-528a4d4e99dd';
+      const routeCompanyId = bookingDetails.bus_routes?.company_id;
+
+      if (routeCompanyId === mdFreitasCompanyId) {
+        try {
+          const vendusApiKey = process.env.VENDUS_API_KEY;
+          const vendusRegisterId = 250268937; // Fixed register_id as per user's clarification
+
+          // Ensure passengers array exists and has items
+          const items = bookingDetails.passengers && bookingDetails.passengers.length > 0
+            ? bookingDetails.passengers.map(passenger => ({
+                qty: 1,
+                id: bookingDetails.bus_routes.external_product_id, // Use external_product_id from route
+                gross_price: bookingDetails.bus_routes.base_price // Price per ticket
+              }))
+            : []; // Empty array if no passengers
+
+          const { data: { user } } = await supabase.auth.getUser(); // Get user for email
+
+          const vendusDocumentResponse = await fetch('/api/vendus/documents', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              register_id: vendusRegisterId,
+              type: "FT", // Factura (Invoice)
+              items: items,
+              client: {
+                name: userProfile?.nome || 'Cliente Desconhecido',
+                fiscal_id: userProfile?.numero_bi || '', // BI number as fiscal ID
+                email: user?.email || '' // User email from Supabase auth
+              },
+              payments: [
+                {
+                  type: "NU", // Assuming "NU" for cash/bank transfer based on /paymentmethods example
+                  amount: bookingDetails.total_price // Total amount of the booking
+                }
+              ],
+              mode: "normal"
+            })
+          });
+
+          if (!vendusDocumentResponse.ok) {
+            const errorData = await vendusDocumentResponse.json();
+            console.error('Error creating document in Vendus:', errorData);
+            // Optionally, handle this error more gracefully
+          } else {
+            const vendusDocument = await vendusDocumentResponse.json();
+            console.log('Document created in Vendus:', vendusDocument);
+          }
+        } catch (vendusError) {
+          console.error('Network or unexpected error with Vendus API (documents):', vendusError);
+        }
+      }
 
       toast({
         title: "Pagamento Confirmado",
         description: "O seu bilhete foi confirmado com sucesso.",
       });
 
-      // Pass bookingId to the "Obrigado" page
       router.push(`/obrigado?bookingId=${bookingId}`);
     } catch (error) {
-      console.error('Error confirming booking:', error);
+      console.error('Error confirming booking or fetching data:', error);
       toast({
         variant: "destructive",
         title: "Erro de Confirmação",
@@ -78,7 +142,7 @@ function PaymentScreenContent() {
         // Fetch booking details
         const { data: bookingData, error: bookingError } = await supabase
           .from('bookings')
-          .select('*')
+          .select('*, bus_routes(company_id, external_product_id, base_price)') // Fetch route details
           .eq('id', bookingId)
           .single();
 
