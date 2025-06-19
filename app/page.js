@@ -235,7 +235,7 @@ export default function Home() {
 
 
 {/* Publicidade Card */}
-<div className="rounded-xl bg-white/20 backdrop-blur-md shadow-2xl p-4 w-[300px] h-[180px] relative overflow-hidden">
+<div className="rounded-xl bg-white/20 backdrop-blur-md shadow-2xl p-4 w-[300px] h-[180px] relative overflow-hidden" style={{ marginTop: "40px" }}>
   <span className="text-lg font-bold text-white absolute top-2 left-4 z-10">
     Publicidade
   </span>
