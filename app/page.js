@@ -200,7 +200,7 @@ export default function Home() {
       <img
         src={currentTransportation.image}
         alt={currentTransportation.type}
-        className="h-72 w-auto object-contain"
+        className="h-64 w-auto object-contain"
       />
     </div>
 
@@ -220,7 +220,7 @@ export default function Home() {
 
 {/* Selection Buttons */}
 {selectedTransportationType === currentTransportation.type && (
-  <div className="flex flex-wrap justify-center gap-4 mb-10 px-4" style={{ marginTop: "-10px" }}>
+  <div className="flex flex-wrap justify-center gap-4 mb-10 px-4">
     {currentTransportation.buttons.map((button) => (
       <button
         key={button.value}
@@ -235,7 +235,7 @@ export default function Home() {
 
 
 {/* Publicidade Card */}
-<div className="rounded-xl bg-white/20 backdrop-blur-md shadow-2xl p-4 w-[300px] h-[180px] relative overflow-hidden" style={{ marginTop: "40px" }}>
+<div className="rounded-xl bg-white/20 backdrop-blur-md shadow-2xl p-4 w-[300px] h-[180px] relative overflow-hidden" style={{ marginTop: "60px" }}>
   <span className="text-lg font-bold text-white absolute top-2 left-4 z-10">
     Publicidade
   </span>
