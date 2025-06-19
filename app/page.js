@@ -9,6 +9,9 @@ export default function Home() {
   const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentTransportationIndex, setCurrentTransportationIndex] = useState(0);
+  const [selectedTransportationType, setSelectedTransportationType] = useState(null);
+  const [isAutoSlideEnabled, setIsAutoSlideEnabled] = useState(true);
+  const [currentAdIndex, setCurrentAdIndex] = useState(0);
   const carouselImages = [
     '/bg/bg1.webp',
     '/bg/bg2.webp',
@@ -21,10 +24,17 @@ export default function Home() {
     '/bg/bg9.webp',
   ];
 
+  const adImages = [
+    '/img/img1.jpg',
+    '/img/img2.jpg',
+    '/img/img3.jpg',
+    '/img/img4.jpg',
+  ];
+
   const transportations = [
     {
       type: 'bus',
-      image: '/transportations/bus.png',
+      image: '/transportations/bus.webp',
       buttons: [
         { label: 'Urbano', value: 'Urbano' },
         { label: 'Interprovincial', value: 'Interprovincional' },
@@ -32,7 +42,7 @@ export default function Home() {
     },
     {
       type: 'plane',
-      image: '/transportations/plane.webp',
+      image: '/transportations/plane2.webp',
       buttons: [
         { label: 'Nacional', value: 'Nacional' },
         { label: 'Internacional', value: 'Internacional' },
@@ -40,7 +50,7 @@ export default function Home() {
     },
     {
       type: 'train',
-      image: '/transportations/train.png',
+      image: '/transportations/train.webp',
       buttons: [
         { label: 'Urbano', value: 'Urbano' },
         { label: 'Interprovincial', value: 'Interprovincial' },
@@ -48,7 +58,7 @@ export default function Home() {
     },
     {
       type: 'boat',
-      image: '/transportations/boat.png',
+      image: '/transportations/boat.webp',
       buttons: [
         { label: 'Urbano', value: 'Urbano' },
         { label: 'Interprovincial', value: 'Interprovincial' },
@@ -57,11 +67,29 @@ export default function Home() {
   ];
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const carouselInterval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
     }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+
+    const transportationInterval = isAutoSlideEnabled
+      ? setInterval(() => {
+          setCurrentTransportationIndex((prev) => (prev + 1) % transportations.length);
+          setSelectedTransportationType(null); // Reset selection when auto-sliding
+        }, 3000)
+      : null;
+
+    const adInterval = setInterval(() => {
+      setCurrentAdIndex((prev) => (prev + 1) % adImages.length);
+    }, 4000); // Change ad every 4 seconds
+
+    return () => {
+      clearInterval(carouselInterval);
+      if (transportationInterval) {
+        clearInterval(transportationInterval);
+      }
+      clearInterval(adInterval);
+    };
+  }, [carouselImages.length, transportations.length, isAutoSlideEnabled, adImages.length]);
 
   const handleImageClick = (buttonValue) => {
     localStorage.setItem('userSelect', buttonValue);
@@ -76,9 +104,15 @@ export default function Home() {
 
   const goToNextTransportation = () => {
     setCurrentTransportationIndex((prev) => (prev + 1) % transportations.length);
+    setSelectedTransportationType(null); // Reset selection when changing transportation
   };
 
   const currentTransportation = transportations[currentTransportationIndex];
+
+  const handleTransportationImageClick = () => {
+    setSelectedTransportationType(currentTransportation.type);
+    setIsAutoSlideEnabled(false); // Disable auto-slide on click
+  };
 
   return (
     <div
@@ -109,6 +143,14 @@ export default function Home() {
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center flex-grow text-white text-center px-4 pt-28 md:pt-36">
         {/* Logo Section */}
+        <div className="absolute top-2 right-2 w-12 h-12 md:hidden z-30">
+  <Image
+    src="/logo/ANGOLA-50-ANOS.png"
+    alt="Angola 50 Anos Logo"
+    fill
+    className="object-contain"
+  />
+</div>
         <div className="absolute top-4 w-full px-20 flex flex-col md:flex-row items-center md:justify-between z-20">
           {/* Main Logo (left on desktop, top on mobile) */}
           <img
@@ -118,20 +160,25 @@ export default function Home() {
           />
 
           {/* Angola 50 Anos Logo (centered on desktop, below logo on mobile) */}
-          <div className="mt-2 md:mt-10 md:absolute md:left-1/2 md:transform md:-translate-x-1/2">
-            <Image
-              src="/logo/ANGOLA-50-ANOS.png"
-              alt="Angola 50 Anos Logo"
-              width={150}
-              height={150}
-              className="object-contain"
-            />
-          </div>
+       {/* 50 Anos Logo for mobile - small and top right */}
+
+
+{/* 50 Anos Logo for desktop - centered below */}
+<div className="mt-2 md:mt-10 md:absolute md:left-1/2 md:transform md:-translate-x-1/2 hidden md:block">
+  <Image
+    src="/logo/ANGOLA-50-ANOS.png"
+    alt="Angola 50 Anos Logo"
+    width={150}
+    height={150}
+    className="object-contain"
+  />
+</div>
+
         </div>
         
 
     {/* Transportation Carousel */}
-<div className="relative flex items-center justify-center w-full max-w-4xl mx-auto mt-20 mb-12">
+<div className="relative flex items-center justify-center w-full max-w-4xl mx-auto  mb-12" style={{ marginTop: "-20px" } }>
   <div className="flex items-center justify-center gap-6 overflow-hidden px-4">
     {/* Previous Image */}
     <div
@@ -141,16 +188,19 @@ export default function Home() {
       <img
         src={transportations[(currentTransportationIndex - 1 + transportations.length) % transportations.length].image}
         alt="Previous Transportation"
-        className="h-28 w-auto object-contain scale-90"
+        className="h-32 w-auto object-contain scale-90"
       />
     </div>
 
     {/* Current Image (main) */}
-    <div className="transition-transform duration-500 transform scale-110 drop-shadow-lg">
+    <div
+      className="transition-transform duration-500 transform scale-110 drop-shadow-lg cursor-pointer"
+      onClick={handleTransportationImageClick}
+    >
       <img
         src={currentTransportation.image}
         alt={currentTransportation.type}
-        className="h-44 w-auto object-contain"
+        className="h-72 w-auto object-contain"
       />
     </div>
 
@@ -162,24 +212,26 @@ export default function Home() {
       <img
         src={transportations[(currentTransportationIndex + 1) % transportations.length].image}
         alt="Next Transportation"
-        className="h-28 w-auto object-contain scale-90"
+        className="h-32 w-auto object-contain scale-90"
       />
     </div>
   </div>
 </div>
 
 {/* Selection Buttons */}
-<div className="flex flex-wrap justify-center gap-4 mb-10 px-4">
-  {currentTransportation.buttons.map((button) => (
-    <button
-      key={button.value}
-      onClick={() => handleImageClick(button.value)}
-      className="bg-[#003b62] text-white px-6 py-2 rounded-lg hover:bg-white hover:text-[#003b62] transition-colors shadow-md"
-    >
-      {button.label}
-    </button>
-  ))}
-</div>
+{selectedTransportationType === currentTransportation.type && (
+  <div className="flex flex-wrap justify-center gap-4 mb-10 px-4">
+    {currentTransportation.buttons.map((button) => (
+      <button
+        key={button.value}
+        onClick={() => handleImageClick(button.value)}
+        className="bg-[#003b62] text-white px-6 py-2 rounded-lg hover:bg-white hover:text-[#003b62] transition-colors shadow-md"
+      >
+        {button.label}
+      </button>
+    ))}
+  </div>
+)}
 
 
 {/* Publicidade Card */}
@@ -187,12 +239,17 @@ export default function Home() {
   <span className="text-lg font-bold text-white absolute top-2 left-4 z-10">
     Publicidade
   </span>
-  <Image
-    src="/img/img1.jpg"
-    alt="Publicidade"
-    fill
-    className="rounded-xl object-cover"
-  />
+  {adImages.map((img, index) => (
+    <Image
+      key={img}
+      src={img}
+      alt={`Publicidade ${index + 1}`}
+      fill
+      className={`rounded-xl object-cover transition-opacity duration-1000 ${
+        index === currentAdIndex ? 'opacity-100' : 'opacity-0'
+      }`}
+    />
+  ))}
   <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-black/50 rounded-xl"></div>
 </div>
 
