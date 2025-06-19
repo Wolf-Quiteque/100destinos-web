@@ -178,7 +178,7 @@ export default function Home() {
         
 
     {/* Transportation Carousel */}
-<div className="relative flex items-center justify-center w-full max-w-4xl mx-auto  mb-12" style={{ marginTop: "-20px" } }>
+<div className="relative flex items-center justify-center w-full max-w-4xl mx-auto " style={{ marginTop: "-20px" } }>
   <div className="flex items-center justify-center gap-6 overflow-hidden px-4">
     {/* Previous Image */}
     <div
@@ -220,7 +220,7 @@ export default function Home() {
 
 {/* Selection Buttons */}
 {selectedTransportationType === currentTransportation.type && (
-  <div className="flex flex-wrap justify-center gap-4 mb-10 px-4">
+  <div className="flex flex-wrap justify-center gap-4 mb-10 px-4" style={{ marginTop: "-10px" }}>
     {currentTransportation.buttons.map((button) => (
       <button
         key={button.value}
