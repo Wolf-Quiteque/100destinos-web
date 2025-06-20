@@ -472,7 +472,7 @@ export default function Home() { // Renamed to Home as per user's move
                                 <div className="route-cities">Luanda → Benguela</div>
                                 <div className="route-details">Voo Direto · 1h 30m</div>
                             </div>
-                            <div className="route-price">$189 <span>ida e volta</span></div>
+                            <div className="route-price">2000 kz <span>ida e volta</span></div>
                         </div>
                         <div className="bookmark">
                             <Bookmark size={12} />
@@ -486,7 +486,7 @@ export default function Home() { // Renamed to Home as per user's move
                                 <div className="route-cities">Huambo → Lobito</div>
                                 <div className="route-details">Autocarro · 4h 15m</div>
                             </div>
-                            <div className="route-price">$29 <span>só ida</span></div>
+                            <div className="route-price">5000 kz <span>só ida</span></div>
                         </div>
                         <div className="bookmark">
                             <Bookmark size={12} />
@@ -500,7 +500,7 @@ export default function Home() { // Renamed to Home as per user's move
                                 <div className="route-cities">Cabinda → Soyo</div>
                                 <div className="route-details">1 Paragem · 3h 50m</div>
                             </div>
-                            <div className="route-price">$149 <span>ida e volta</span></div>
+                            <div className="route-price">7000 kz <span>ida e volta</span></div>
                         </div>
                         <div className="bookmark">
                             <Bookmark size={12} />
