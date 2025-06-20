@@ -23,13 +23,23 @@ const BilhetesClientComponent = () => {
   const [isUrban, setIsUrban] = useState(false);
   const [searchDeparture, setSearchDeparture] = useState(''); // State for URL departure
   const [searchDestination, setSearchDestination] = useState(''); // State for URL destination
+  const [searchDate, setSearchDate] = useState(''); // State for URL date
+  const [searchIsRoundTrip, setSearchIsRoundTrip] = useState(false); // State for URL isRoundTrip
+  const [searchReturnDate, setSearchReturnDate] = useState(''); // State for URL returnDate
 
   useEffect(() => {
     // Get search params from URL
     const departureParam = searchParams.get('departure');
     const destinationParam = searchParams.get('destination');
+    const dateParam = searchParams.get('date');
+    const isRoundTripParam = searchParams.get('isRoundTrip') === 'true';
+    const returnDateParam = searchParams.get('returnDate');
+
     setSearchDeparture(departureParam || '');
     setSearchDestination(destinationParam || '');
+    setSearchDate(dateParam || '');
+    setSearchIsRoundTrip(isRoundTripParam);
+    setSearchReturnDate(returnDateParam || '');
 
     // Determine urban/interprovincial from localStorage (as before)
     const userSelect = localStorage.getItem('userSelect');
@@ -37,11 +47,11 @@ const BilhetesClientComponent = () => {
     setIsUrban(urbanStatus);
 
     // Fetch routes based on urban status, passing URL params for prioritization
-    fetchBusRoutes(urbanStatus, departureParam, destinationParam);
+    fetchBusRoutes(urbanStatus, departureParam, destinationParam, dateParam);
 
   }, [searchParams]); // Re-run if searchParams change
 
-  const fetchBusRoutes = async (isUrban, departureParam, destinationParam) => {
+  const fetchBusRoutes = async (isUrban, departureParam, destinationParam, dateParam) => {
     setLoading(true);
     setBusTickets([]); // Clear previous tickets
     setFilteredTickets([]); // Clear previous filtered tickets
@@ -62,10 +72,22 @@ const BilhetesClientComponent = () => {
       if (error) throw error;
 
       const fetchedData = data || [];
-      setBusTickets(fetchedData); // Store raw fetched data
+      console.log('Fetched data from Supabase (before date filter):', fetchedData);
+
+      // Temporarily remove date filtering as per user's priority
+      const filteredByDate = fetchedData; // No date filtering for now
+      // const filteredByDate = dateParam
+      //   ? fetchedData.filter(ticket => {
+      //       // Assuming ticket.departure_date is in 'YYYY-MM-DD' format
+      //       return ticket.departure_date === dateParam;
+      //     })
+      //   : fetchedData;
+
+      console.log('Data after date filtering (or no filtering):', filteredByDate);
+      setBusTickets(filteredByDate); // Store raw fetched data after date filtering
 
       // Prioritize exact matches based on URL params for the "Todos" tab initial view
-      const prioritizedData = [...fetchedData].sort((a, b) => {
+      const prioritizedData = [...filteredByDate].sort((a, b) => {
         const aIsExactMatch = a.origin === departureParam && a.destination === destinationParam;
         const bIsExactMatch = b.origin === departureParam && b.destination === destinationParam;
 

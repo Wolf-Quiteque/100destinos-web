@@ -11,7 +11,8 @@ import ReactDOM from 'react-dom'; // Import ReactDOM for dynamic rendering
 
 export default function Home() { // Renamed to Home as per user's move
     const router = useRouter();
-    const { session } = useAuth(); // Get session from useAuth
+    const { session, user: authUser } = useAuth(); // Get session and user from useAuth
+    const [profile, setProfile] = useState(null); // New state for profile data
     const [currentHeaderBg, setCurrentHeaderBg] = useState(0);
     const [activeTab, setActiveTab] = useState('bus'); // Default active tab
 
@@ -37,6 +38,29 @@ export default function Home() { // Renamed to Home as per user's move
     const [currentAdIndex, setCurrentAdIndex] = useState(0); // New state for ad slideshow
 
     const supabase = createClientComponentClient(); // Initialize Supabase client
+
+    // Fetch user profile from 'profiles' table
+    useEffect(() => {
+        const fetchProfile = async () => {
+            if (authUser) { // Use authUser from AuthContext
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('nome') // Only need the name for the avatar
+                    .eq('id', authUser.id)
+                    .single();
+
+                if (error) {
+                    console.error('Error fetching profile for avatar:', error);
+                } else {
+                    setProfile(data);
+                }
+            } else {
+                setProfile(null); // Clear profile if no authenticated user
+            }
+        };
+
+        fetchProfile();
+    }, [authUser, supabase]); // Re-run when authUser or supabase client changes
 
     const headerBackgrounds = [
         '/bg/bg1.webp',
@@ -69,6 +93,7 @@ export default function Home() { // Renamed to Home as per user's move
             if (error) {
                 console.error('Error fetching bus routes:', error);
             } else {
+                console.log('Fetched bus routes data:', data); // Log fetched data
                 setAllBusRoutes(data);
             }
             setIsLoadingRoutes(false);
@@ -76,6 +101,11 @@ export default function Home() { // Renamed to Home as per user's move
 
         fetchBusRoutes();
     }, [supabase]);
+
+    // Log allBusRoutes after it's updated
+    useEffect(() => {
+        console.log('Current allBusRoutes state:', allBusRoutes);
+    }, [allBusRoutes]);
 
     // Initialize selectedRouteType from localStorage and filter initial suggestions
     useEffect(() => {
@@ -219,16 +249,17 @@ export default function Home() { // Renamed to Home as per user's move
             console.log(`Searching for bus from ${fromLocation} to ${toLocation} (${selectedRouteType})`);
             // Pass selected locations to localStorage for bilhetes/page.js
             localStorage.setItem('searchFrom', fromLocation);
-            localStorage.setItem('searchTo', toLocation);
-            localStorage.setItem('searchDate', departureDate); // Pass departure date
-            localStorage.setItem('isRoundTrip', isRoundTrip.toString()); // Pass round trip status
-            if (isRoundTrip) {
-                localStorage.setItem('returnDate', returnDate); // Pass return date if round trip
-            } else {
-                localStorage.removeItem('returnDate'); // Clear return date if not round trip
-            }
             localStorage.setItem('userSelect', selectedRouteType); // Ensure route type is passed
-            router.push('/bilhetes');
+
+            const queryParams = new URLSearchParams();
+            queryParams.append('departure', fromLocation);
+            queryParams.append('destination', toLocation);
+            queryParams.append('date', departureDate);
+            queryParams.append('isRoundTrip', isRoundTrip.toString());
+            if (isRoundTrip) {
+                queryParams.append('returnDate', returnDate);
+            }
+            router.push(`/bilhetes?${queryParams.toString()}`);
         } else {
             console.log(`Searching for ${activeTab} (no specific functionality yet)`);
             // For other types, simulate existing logic
@@ -275,10 +306,16 @@ export default function Home() { // Renamed to Home as per user's move
                             onClick={() => !session && router.push('/login')} // Navigate to login if not authenticated
                             style={{ cursor: session ? 'default' : 'pointer' }} // Change cursor for unauthenticated state
                         >
-                            {session ? (
-                                session.user?.user_metadata?.first_name && session.user?.user_metadata?.last_name ?
-                                    `${session.user.user_metadata.first_name.charAt(0).toUpperCase()}${session.user.user_metadata.last_name.charAt(0).toUpperCase()}` :
-                                    session.user?.user_metadata?.full_name ? session.user.user_metadata.full_name.charAt(0).toUpperCase() : 'JS'
+                            {session && profile?.nome ? (
+                                (() => {
+                                    const nameParts = profile.nome.split(' ').filter(part => part.length > 0);
+                                    if (nameParts.length >= 2) {
+                                        return `${nameParts[0].charAt(0).toUpperCase()}${nameParts[nameParts.length - 1].charAt(0).toUpperCase()}`;
+                                    } else if (nameParts.length === 1) {
+                                        return nameParts[0].charAt(0).toUpperCase();
+                                    }
+                                    return 'JS'; // Fallback if name is not properly formatted
+                                })()
                             ) : (
                                 <User size={24} /> // Lucide User icon when not authenticated
                             )}
@@ -306,6 +343,7 @@ export default function Home() { // Renamed to Home as per user's move
                             placeholder={fromPlaceholder}
                             value={fromLocation}
                             onChange={handleFromChange}
+                            required
                         />
                         {fromSuggestions.length > 0 && fromLocation && (
                             <ul className="suggestions-list">
@@ -328,6 +366,7 @@ export default function Home() { // Renamed to Home as per user's move
                             placeholder={toPlaceholder}
                             value={toLocation}
                             onChange={handleToChange}
+                            required
                         />
                         {toSuggestions.length > 0 && toLocation && (
                             <ul className="suggestions-list">

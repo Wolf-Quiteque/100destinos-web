@@ -1,12 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { User, Mail, Phone, MapPin, Loader2, LogOut, CalendarDays, UserCheck } from 'lucide-react'; // Added icons
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
-import { Button } from "@/components/ui/button"; // Import Button
-import { useToast } from "@/hooks/use-toast"; // Import useToast
+import { useToast } from "@/hooks/use-toast";
 
 // Helper function to format date
 const formatDate = (dateString) => {
@@ -36,7 +33,7 @@ export default function PerfilPage() {
           .from('profiles')
           .select('*')
           .eq('id', user.id)
-          .single(); // Fetch single profile linked to the user ID
+          .single();
 
         if (error) {
           console.error('Error fetching profile:', error);
@@ -45,7 +42,6 @@ export default function PerfilPage() {
           setProfile(data);
         }
       } else {
-        // This case should ideally be handled by middleware, but as a fallback:
         router.push('/login');
       }
       setLoading(false);
@@ -63,21 +59,20 @@ export default function PerfilPage() {
       toast({ title: "Erro ao Sair", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Sessão terminada." });
-      router.push('/login'); // Redirect to login after logout
-      router.refresh(); // Ensure layout state updates
+      router.push('/login');
+      router.refresh();
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-900 via-gray-900 to-black">
-        <Loader2 className="h-16 w-16 text-orange-500 animate-spin" />
+        <i className="fas fa-spinner fa-spin fa-3x text-orange-500"></i>
       </div>
     );
   }
 
   if (!profile) {
-     // This might show briefly if fetch fails before redirect
      return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-900 via-gray-900 to-black text-white">
             <p>Perfil não encontrado ou erro ao carregar.</p>
@@ -85,62 +80,202 @@ export default function PerfilPage() {
      );
   }
 
-  // Construct placeholder image URL using a part of the user ID for consistency
-  const profilePicSeed = profile.id.substring(0, 8); // Use first 8 chars of UUID as seed
-  const profilePicUrl = `https://picsum.photos/seed/${profilePicSeed}/200/200`;
+  const initials = profile.nome ? profile.nome.split(' ').map(n => n[0]).join('').toUpperCase() : 'JS';
 
   return (
-    // Added bottom padding pb-20 md:pb-8
-    <div className="min-h-screen bg-gradient-to-br from-orange-900 via-gray-900 to-black text-white p-4 md:p-8 flex flex-col items-center pt-12 md:pt-16 pb-20 md:pb-8">
-      {/* Removed card styling (bg, backdrop, rounded, shadow, p-*, border) from this div */}
-      <div className="w-full max-w-md"> 
-        {/* Profile Picture */}
-        <div className="flex justify-center mb-6">
-          {/* Kept profile picture styling */}
-          <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-orange-500 shadow-lg">
-            <Image
-              src={profilePicUrl} // Use dynamic seed
-              alt="Foto de Perfil"
-              fill
-              style={{ objectFit: 'cover' }}
-              priority
-            />
+    <>
+      <div className="container">
+          {/* Cabeçalho */}
+          <header className="profile-header">
+              <div className="profile-avatar">{initials}</div>
+              <h1 className="profile-name">{profile.nome || 'João Silva'}</h1>
+              <div className="profile-status">
+                  <i className="fas fa-rocket"></i>
+                  <span>Viajante Frequente</span>
+              </div>
+              
+              <div className="stats-container">
+                  <div className="stat-item">
+                      <div className="stat-value">24</div>
+                      <div className="stat-label">Viagens</div>
+                  </div>
+                  <div className="stat-item">
+                      <div className="stat-value">12</div>
+                      <div className="stat-label">Cidades</div>
+                  </div>
+                  <div className="stat-item">
+                      <div className="stat-value">42K</div>
+                      <div className="stat-label">Milhas</div>
+                  </div>
+              </div>
+          </header>
+          
+          {/* Navegação */}
+          <div className="profile-nav">
+              <div className="profile-nav-item">Ônibus</div>
+              <div className="profile-nav-item active">Voos</div>
+              <div className="profile-nav-item">Comboio</div>
+              <div className="profile-nav-item">Barco</div>
           </div>
-        </div>
-
-        {/* User Info */}
-        <div className="space-y-4"> {/* Reduced spacing slightly */}
-          <InfoItem icon={User} label="Nome" value={profile.nome || 'N/A'} />
-          <InfoItem icon={UserCheck} label="Sexo" value={profile.sexo || 'N/A'} />
-          <InfoItem icon={CalendarDays} label="Data Nasc." value={formatDate(profile.data_nascimento)} />
-          {/* Consider masking BI number partially if needed */}
-          <InfoItem icon={User} label="Nº BI" value={profile.numero_bi || 'N/A'} />
-          <InfoItem icon={Phone} label="Telefone" value={profile.telefone || 'N/A'} />
-          {/* Email is derived, not stored in profiles table */}
-       </div>
-
-        {/* Logout Button */}
-        <div className="mt-8 text-center">
-          <Button
-            onClick={handleLogout}
-            variant="destructive" // Use destructive variant for logout
-            className="w-full max-w-xs bg-red-600 hover:bg-red-700"
-            disabled={isLoggingOut}
-          >
-            {isLoggingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
-            Terminar Sessão
-          </Button>
-        </div>
+          
+          {/* Histórico */}
+          <div className="section-title">
+              Voos Anteriores
+              <a href="#" className="see-all">Ver todos</a>
+          </div>
+          
+          <div className="timeline">
+              {/* Viagem recente */}
+              <div className="timeline-item">
+                  <div className="timeline-dot"></div>
+                  <div className="timeline-content">
+                      <div className="trip-header">
+                          <div>
+                              <div className="trip-route">GRU → JFK</div>
+                              <div className="trip-details">
+                                  <div className="trip-detail">
+                                      <i className="fas fa-plane"></i>
+                                      <span>LATAM</span>
+                                  </div>
+                                  <div className="trip-detail">
+                                      <i className="fas fa-clock"></i>
+                                      <span>10h 30m</span>
+                                  </div>
+                              </div>
+                          </div>
+                          <div className="trip-date">15 MAI 2023</div>
+                      </div>
+                      
+                      <div className="trip-image" style={{ backgroundImage: "url('https://picsum.photos/id/1036/800/600')" }}>
+                          <div className="trip-location">Nova York, EUA</div>
+                      </div>
+                  </div>
+              </div>
+              
+              {/* Viagem anterior */}
+              <div className="timeline-item">
+                  <div className="timeline-dot"></div>
+                  <div className="timeline-content">
+                      <div className="trip-header">
+                          <div>
+                              <div className="trip-route">GRU → MIA</div>
+                              <div className="trip-details">
+                                  <div className="trip-detail">
+                                      <i className="fas fa-plane"></i>
+                                      <span>American Airlines</span>
+                                  </div>
+                                  <div className="trip-detail">
+                                      <i className="fas fa-clock"></i>
+                                      <span>8h 15m</span>
+                                  </div>
+                              </div>
+                          </div>
+                          <div className="trip-date">2 ABR 2023</div>
+                      </div>
+                      
+                      <div className="trip-image" style={{ backgroundImage: "url('https://picsum.photos/id/1040/800/600')" }}>
+                          <div className="trip-location">Miami, EUA</div>
+                      </div>
+                  </div>
+              </div>
+              
+              {/* Viagem anterior */}
+              <div className="timeline-item">
+                  <div className="timeline-dot"></div>
+                  <div className="timeline-content">
+                      <div className="trip-header">
+                          <div>
+                              <div className="trip-route">GRU → SSA</div>
+                              <div className="trip-details">
+                                  <div className="trip-detail">
+                                      <i className="fas fa-plane"></i>
+                                      <span>GOL</span>
+                                  </div>
+                                  <div className="trip-detail">
+                                      <i className="fas fa-clock"></i>
+                                      <span>2h 30m</span>
+                                  </div>
+                              </div>
+                          </div>
+                          <div className="trip-date">10 MAR 2023</div>
+                      </div>
+                      
+                      <div className="trip-image" style={{ backgroundImage: "url('https://picsum.photos/id/1050/800/600')" }}>
+                          <div className="trip-location">Salvador, Brasil</div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          
+          {/* Conquistas */}
+          <div className="section-title badges-section">
+              Conquistas
+              <a href="#" className="see-all">5/12 desbloqueadas</a>
+          </div>
+          
+          <div className="badges-grid">
+              <div className="badge-card">
+                  <div className="badge-icon">
+                      <i className="fas fa-plane"></i>
+                  </div>
+                  <div className="badge-name">Primeiro Voo</div>
+                  <div className="badge-date">JAN 2022</div>
+              </div>
+              
+              <div className="badge-card">
+                  <div className="badge-icon">
+                      <i className="fas fa-globe-americas"></i>
+                  </div>
+                  <div className="badge-name">Costa a Costa</div>
+                  <div className="badge-date">MAR 2022</div>
+              </div>
+              
+              <div className="badge-card">
+                  <div className="badge-icon">
+                      <i className="fas fa-route"></i>
+                  </div>
+                  <div className="badge-name">10K Milhas</div>
+                  <div className="badge-date">MAI 2022</div>
+              </div>
+              
+              <div className="badge-card">
+                  <div className="badge-icon">
+                      <i className="fas fa-cloud-sun"></i>
+                  </div>
+                  <div className="badge-name">Viajante Experiente</div>
+                  <div className="badge-date">AGO 2022</div>
+              </div>
+              
+              <div className="badge-card">
+                  <div className="badge-icon">
+                      <i className="fas fa-business-time"></i>
+                  </div>
+                  <div className="badge-name">Classe Executiva</div>
+                  <div className="badge-date">NOV 2022</div>
+              </div>
+              
+              <div className="badge-card locked">
+                  <div className="badge-icon locked">
+                      <i className="fas fa-lock"></i>
+                  </div>
+                  <div className="badge-name">Explorador Global</div>
+                  <div className="badge-date">?</div>
+              </div>
+          </div>
       </div>
-    </div>
+      
+
+      {/* Logout Button */}
+      <div className="mt-8 text-center">
+          <button
+              onClick={handleLogout}
+              className="w-full max-w-xs bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-300"
+              disabled={isLoggingOut}
+          >
+              {isLoggingOut ? <i className="fas fa-spinner fa-spin mr-2"></i> : <i className="fas fa-sign-out-alt mr-2"></i>}
+              Terminar Sessão
+          </button>
+      </div>
+    </>
   );
 }
-
-// Helper component for info items
-const InfoItem = ({ icon: Icon, label, value }) => (
-  <div className="flex items-center space-x-3 p-3 bg-gray-700/60 rounded-lg text-sm md:text-base">
-    <Icon className="text-orange-400 h-5 w-5 flex-shrink-0" />
-    <span className="text-gray-300 font-medium w-24 md:w-28 flex-shrink-0">{label}:</span>
-    <span className="font-normal text-white break-words">{value}</span>
-  </div>
-);
