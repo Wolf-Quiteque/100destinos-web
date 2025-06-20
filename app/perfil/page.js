@@ -84,7 +84,7 @@ export default function PerfilPage() {
 
   return (
     <>
-      <div className="container">
+      <div className="container bg-gradient-to-br from-orange-900 via-gray-900 to-black">
           {/* Cabeçalho */}
           <header className="profile-header">
               <div className="profile-avatar">{initials}</div>
