@@ -276,7 +276,9 @@ export default function Home() { // Renamed to Home as per user's move
                             style={{ cursor: session ? 'default' : 'pointer' }} // Change cursor for unauthenticated state
                         >
                             {session ? (
-                                session.user?.user_metadata?.full_name ? session.user.user_metadata.full_name.charAt(0).toUpperCase() : 'JS'
+                                session.user?.user_metadata?.first_name && session.user?.user_metadata?.last_name ?
+                                    `${session.user.user_metadata.first_name.charAt(0).toUpperCase()}${session.user.user_metadata.last_name.charAt(0).toUpperCase()}` :
+                                    session.user?.user_metadata?.full_name ? session.user.user_metadata.full_name.charAt(0).toUpperCase() : 'JS'
                             ) : (
                                 <User size={24} /> // Lucide User icon when not authenticated
                             )}
