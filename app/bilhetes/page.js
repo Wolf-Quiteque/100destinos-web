@@ -157,16 +157,6 @@ const BilhetesClientComponent = () => {
       <PassengerModal isOpen={dialog} ticket={selectedTicket} onClose={handleModalClose}/>
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-orange-800 p-4 md:p-8">
         <div className="max-w-4xl mx-auto relative"> {/* Added relative positioning */}
-          {/* Back Button */}
-          <Button 
-            variant="ghost" 
-            size="lg" // Made button size larger
-            className="absolute top-1 left-1 md:top-3 md:left-3 text-white bg-black/20 hover:bg-white/30 focus:bg-white/30 p-2.5 rounded-full" // Adjusted position, added subtle base bg, increased padding
-            onClick={() => router.push('/pesquisar')}
-          >
-            <ArrowLeft className="h-8 w-8" strokeWidth={3.5} /> {/* Slightly increased strokeWidth */}
-          </Button>
-          
           <div className="flex items-center justify-center mb-6 pt-12 md:pt-0"> {/* Increased padding top for mobile */}
             <h1 className="text-3xl md:text-4xl font-bold text-white text-center"> {/* Centered title */}
               {isUrban ? 'Rotas Urbanas' : 'Rotas Interprovinciais'}

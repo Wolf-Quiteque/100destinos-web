@@ -15,14 +15,14 @@ const baseNavItems = [
 ];
 
 // Paths where the MobileAppBar should be hidden
-const hiddenPaths = ['/bilhetes', '/pagamento', '/login', '/signup']; // Added login and signup
+const hiddenPaths = [ '/pagamento', '/login', '/signup']; // Added login and signup
 
 export default function MobileAppBar() {
   const pathname = usePathname();
   const router = useRouter(); // Initialize router
   const { user, isLoading: isAuthLoading } = useAuth(); // Use context
 
-  const isPesquisarPage = pathname === '/pesquisar';
+  const isbilhetespage = pathname === '/bilhetes';
 
   // Check if the current path starts with any of the hidden paths
   const isHidden = hiddenPaths.some(path => pathname.startsWith(path) && path !== '/pesquisar');
@@ -42,7 +42,7 @@ export default function MobileAppBar() {
   });
 
   // Specific layout for /pesquisar page - Just the button
-  if (isPesquisarPage) {
+  if (isbilhetespage) {
     return (
       <button
         onClick={() => router.push('/')} // Navigate to home page
