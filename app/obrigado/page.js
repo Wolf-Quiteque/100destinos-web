@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useEffect, useState, useRef, Suspense } from 'react';
 import {
   Check,
   MapPin,
@@ -10,38 +10,61 @@ import {
 } from 'lucide-react';
 import generatePassengerTickets from '../pagamento/generatePassengerTickets';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import BusTicketLoader from '../components/BusTicketLoader';
+import { Button } from '@/components/ui/button'; // Import Button component
 
 function ThankYouScreenContent() {
-  const searchParams = useSearchParams();
+  const supabase = createClientComponentClient();
   const router = useRouter();
-
+  const searchParams = useSearchParams();
   const [animationStage, setAnimationStage] = useState(0);
-  const [bookingInfo, setBookingInfo] = useState({ origin: 'N/A', destination: 'N/A', passengerCount: 0 }); // State for booking info
+  const [bookingDetails, setBookingDetails] = useState(null); // State for booking details
+  const [loading, setLoading] = useState(true);
+
   const bookingId = searchParams.get('bookingId');
 
   useEffect(() => {
-    // Retrieve booking details from localStorage
-    const storedDetails = localStorage.getItem('lastBookingDetails');
-    if (storedDetails) {
-      try {
-        const parsedDetails = JSON.parse(storedDetails);
-        setBookingInfo({
-          origin: parsedDetails.origin || 'N/A',
-          destination: parsedDetails.destination || 'N/A',
-          passengerCount: parsedDetails.passengerCount || 0
-        });
-        // Optional: Clear the item after retrieving it
-        // localStorage.removeItem('lastBookingDetails');
-      } catch (error) {
-        console.error("Error parsing booking details from localStorage:", error);
-        // Keep default N/A values if parsing fails
+    const fetchBookingDetails = async () => {
+      if (!bookingId) {
+        router.push('/bilhetes');
+        return;
       }
-    } else {
-      console.warn("No booking details found in localStorage for Obrigado page.");
-      // Maybe redirect or show an error if details are crucial?
-      // For now, it will just show N/A
-    }
+
+      setLoading(true);
+
+      try {
+        // Fetch booking details
+        const { data: bookingData, error: bookingError } = await supabase
+          .from('bookings')
+          .select('*')
+          .eq('id', bookingId)
+          .single();
+
+        if (bookingError) throw bookingError;
+
+        // Fetch route details from available_routes view
+        const { data: routeData, error: routeError } = await supabase
+          .from('available_routes')
+          .select('*')
+          .eq('id', bookingData.route_id)
+          .single();
+
+        if (routeError) throw routeError;
+
+        // Combine booking and route details
+        setBookingDetails({ ...bookingData, route_details: routeData });
+
+      } catch (error) {
+        console.error('Error fetching booking details:', error);
+        // Handle error appropriately (e.g., show a toast)
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBookingDetails();
 
     // Animation stages
     const stages = [
@@ -53,23 +76,43 @@ function ThankYouScreenContent() {
     stages.forEach((stage, index) => {
       setTimeout(stage, (index + 1) * 500);
     });
-  }, []); // Run only once on mount
+  }, [bookingId, supabase, router]); // Run when bookingId changes
 
   const Downloadpdf = async () =>{
-    if (!bookingId) {
-      console.error("No booking ID found for PDF generation.");
+    if (!bookingDetails) {
+      console.error("No booking details found for PDF generation.");
       // Optionally show a toast message to the user
       return;
     }
     console.log("Generating PDF for booking ID:", bookingId);
     try {
-      await generatePassengerTickets(bookingId);
+      await generatePassengerTickets(bookingDetails); // Pass bookingDetails
       // Consider adding a success toast here
       router.push("/pesquisar"); // Redirect after initiating download
     } catch (error) {
        console.error("Error generating PDF:", error);
        // Optionally show an error toast
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-orange-800 flex items-center justify-center">
+        <Loader2 className="h-16 w-16 text-orange-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!bookingDetails || !bookingDetails.route_details) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-orange-800 flex items-center justify-center">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Erro</AlertTitle>
+          <AlertDescription>Não foi possível carregar os detalhes da reserva.</AlertDescription>
+        </Alert>
+      </div>
+    );
   }
 
   return (
@@ -139,17 +182,17 @@ function ThankYouScreenContent() {
             <div className="flex flex-col items-center">
               <Bus className="text-orange-500 mb-2" />
               <span className="text-sm">Origem</span>
-              <strong>{bookingInfo.origin}</strong>
+              <strong>{bookingDetails.route_details.origin}</strong>
             </div>
             <div className="flex flex-col items-center">
               <MapPin className="text-orange-500 mb-2" />
               <span className="text-sm">Destino</span>
-              <strong>{bookingInfo.destination}</strong>
+              <strong>{bookingDetails.route_details.destination}</strong>
             </div>
             <div className="flex flex-col items-center">
               <Users className="text-orange-500 mb-2" /> {/* Changed icon */}
               <span className="text-sm">Passageiros</span>
-              <strong>{bookingInfo.passengerCount}</strong>
+              <strong>{bookingDetails.total_passengers}</strong>
             </div>
           </div>
         </div>

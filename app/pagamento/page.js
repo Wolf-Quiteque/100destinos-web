@@ -44,9 +44,9 @@ function PaymentScreenContent() {
     try {
       // The bookingData is already fetched in the useEffect and available in state.
       // We need to ensure it's available here.
-      if (!bookingDetails || !userProfile) {
-        console.error('Booking details or user profile not available for confirmation.');
-        throw new Error('Missing booking details or user profile.');
+      if (!bookingDetails || !userProfile || !bookingDetails.route_details) {
+        console.error('Booking details, user profile, or route details not available for confirmation.');
+        throw new Error('Missing booking details, user profile, or route details.');
       }
 
       // Update booking status in Supabase
@@ -57,11 +57,12 @@ function PaymentScreenContent() {
 
       if (updateBookingError) throw updateBookingError;
 
-      // Check if the company is "md freitas"
+      // Check if the company is "md freitas" and if it's a bus route for Vendus integration
       const mdFreitasCompanyId = 'c154caa3-b54c-4ae3-b8bd-528a4d4e99dd';
-      const routeCompanyId = bookingDetails.bus_routes?.company_id;
+      const routeCompanyId = bookingDetails.route_details.company_id;
+      const isBusRoute = bookingDetails.route_details.type === 'bus';
 
-      if (routeCompanyId === mdFreitasCompanyId) {
+      if (isBusRoute && routeCompanyId === mdFreitasCompanyId) { // Only for bus routes from md freitas
         try {
           const vendusApiKey = process.env.VENDUS_API_KEY;
           const vendusRegisterId = 250268937; // Fixed register_id as per user's clarification
@@ -70,8 +71,8 @@ function PaymentScreenContent() {
           const items = bookingDetails.passengers && bookingDetails.passengers.length > 0
             ? bookingDetails.passengers.map(passenger => ({
                 qty: 1,
-                id: bookingDetails.bus_routes.external_product_id, // Use external_product_id from route
-                gross_price: bookingDetails.bus_routes.base_price // Price per ticket
+                id: bookingDetails.route_details.external_product_id, // Use external_product_id from route_details
+                gross_price: bookingDetails.route_details.base_price // Price per ticket
               }))
             : []; // Empty array if no passengers
 
@@ -142,12 +143,23 @@ function PaymentScreenContent() {
         // Fetch booking details
         const { data: bookingData, error: bookingError } = await supabase
           .from('bookings')
-          .select('*, bus_routes(company_id, external_product_id, base_price)') // Fetch route details
+          .select('*') // Select all from bookings, we'll fetch route details separately
           .eq('id', bookingId)
           .single();
 
         if (bookingError) throw bookingError;
-        setBookingDetails(bookingData);
+        
+        // Fetch route details from available_routes view
+        const { data: routeData, error: routeError } = await supabase
+          .from('available_routes')
+          .select('*') // Select all details from the view
+          .eq('id', bookingData.route_id) // Use route_id from bookingData
+          .single();
+
+        if (routeError) throw routeError;
+
+        // Combine booking and route details
+        setBookingDetails({ ...bookingData, route_details: routeData });
 
         // Fetch user profile
         const { data: { user } } = await supabase.auth.getUser();
@@ -253,7 +265,7 @@ function PaymentScreenContent() {
                 {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ data: comprovativoText })
+              body: JSON.stringify({ data: comprovativoText })
                 }
               );
               await confirmBooking(); // Confirm booking in Supabase

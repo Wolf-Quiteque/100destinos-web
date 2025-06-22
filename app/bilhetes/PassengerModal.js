@@ -129,12 +129,16 @@ const PassengerModal = ({
     const fetchSeatAvailability = async () => {
       if (!ticket || !isOpen) return;
       try {
-        const { data, error } = await supabase
-          .from('route_seat_availability')
-          .select('*')
-          .eq('route_id', ticket.id)
-          .single();
+        // Get the booking date (e.g., current date for availability)
+        const bookingDate = new Date().toISOString().split('T')[0]; 
+
+        const { data, error } = await supabase.rpc('get_route_seat_availability', {
+          p_route_id: ticket.id,
+          p_booking_date: bookingDate
+        }).single(); // Expecting a single row/object
+
         if (error) throw error;
+
         const totalSeats = ticket.total_seats;
         const booked = data?.booked_seat_numbers || [];
         const available = Array.from({ length: totalSeats }, (_, i) => `${i + 1}`)
@@ -254,7 +258,8 @@ const PassengerModal = ({
         selected_seats_param: selectedSeats,
         contact_email_param: contactInfo.email, // Buyer's email
         contact_phone_param: contactInfo.phone, // Buyer's phone
-        profile_id_param: profileId // Buyer's profile ID
+        profile_id_param: profileId, // Buyer's profile ID
+        route_type_param: ticket.type // Pass the route type
       });
 
       if (error) throw error;
