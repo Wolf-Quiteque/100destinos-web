@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react'; // Added useMemo
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useSearchParams, useRouter } from 'next/navigation'; // Added useSearchParams and useRouter
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bus, Clock, MapPin, Ticket, Route, HandCoins, Zap, Loader2, ArrowLeft } from 'lucide-react'; // Added Loader2 and ArrowLeft
+import { Bus, Plane, Clock, MapPin, Ticket, Route, HandCoins, Zap, Loader2, ArrowLeft } from 'lucide-react'; // Added Plane icon
 import PassengerModal from './PassengerModal';
 import SearchModal from './SearchModal';
 import { Button } from '@/components/ui/button'; // Assuming Button component exists
@@ -26,6 +26,7 @@ const BilhetesClientComponent = () => {
   const [searchDate, setSearchDate] = useState(''); // State for URL date
   const [searchIsRoundTrip, setSearchIsRoundTrip] = useState(false); // State for URL isRoundTrip
   const [searchReturnDate, setSearchReturnDate] = useState(''); // State for URL returnDate
+  const [searchType, setSearchType] = useState(''); // New state for route type (bus/plane)
 
   useEffect(() => {
     // Get search params from URL
@@ -34,38 +35,43 @@ const BilhetesClientComponent = () => {
     const dateParam = searchParams.get('date');
     const isRoundTripParam = searchParams.get('isRoundTrip') === 'true';
     const returnDateParam = searchParams.get('returnDate');
+    const typeParam = searchParams.get('type'); // Get the new type parameter
 
     setSearchDeparture(departureParam || '');
     setSearchDestination(destinationParam || '');
     setSearchDate(dateParam || '');
     setSearchIsRoundTrip(isRoundTripParam);
     setSearchReturnDate(returnDateParam || '');
+    setSearchType(typeParam || 'bus'); // Default to 'bus' if not specified
 
-    // Determine urban/interprovincial from localStorage (as before)
+    // Determine urban/interprovincial from localStorage (only relevant for bus)
     const userSelect = localStorage.getItem('userSelect');
     const urbanStatus = userSelect === 'Urbano';
     setIsUrban(urbanStatus);
 
-    // Fetch routes based on urban status, passing URL params for prioritization
-    fetchBusRoutes(urbanStatus, departureParam, destinationParam, dateParam);
+    // Fetch routes based on type and other params
+    fetchRoutes(typeParam || 'bus', urbanStatus, departureParam, destinationParam, dateParam);
 
   }, [searchParams]); // Re-run if searchParams change
 
-  const fetchBusRoutes = async (isUrban, departureParam, destinationParam, dateParam) => {
+  const fetchRoutes = async (type, isUrban, departureParam, destinationParam, dateParam) => {
     setLoading(true);
-    setBusTickets([]); // Clear previous tickets
+    setBusTickets([]); // Clear previous tickets (will now hold all types)
     setFilteredTickets([]); // Clear previous filtered tickets
     try {
       let query = supabase
         .from('available_routes') // Using the view
-        .select('*');
+        .select('*')
+        .eq('type', type); // Filter by the new type column
 
-      if (isUrban) {
-        query = query.eq('urbano', true);
-      } else {
-        // Fetch non-urban routes
-        query = query.eq('urbano', false);
+      if (type === 'bus') {
+        if (isUrban) {
+          query = query.eq('urbano', true);
+        } else {
+          query = query.eq('urbano', false);
+        }
       }
+      // No 'urbano' filter for 'plane' type as per schema
 
       const { data, error } = await query;
 
@@ -101,7 +107,7 @@ const BilhetesClientComponent = () => {
       setFilteredTickets(prioritizedData); // Set filtered tickets with prioritized results for the "Todos" tab
 
     } catch (error) {
-      console.error('Error fetching bus routes:', error);
+      console.error('Error fetching routes:', error); // Changed error message
       // Consider adding user feedback here (e.g., toast notification)
     } finally {
       setLoading(false);
@@ -181,7 +187,7 @@ const BilhetesClientComponent = () => {
         <div className="max-w-4xl mx-auto relative"> {/* Added relative positioning */}
           <div className="flex items-center justify-center mb-6 pt-12 md:pt-0"> {/* Increased padding top for mobile */}
             <h1 className="text-3xl md:text-4xl font-bold text-white text-center"> {/* Centered title */}
-              {isUrban ? 'Rotas Urbanas' : 'Rotas Interprovinciais'}
+              {searchType === 'bus' ? (isUrban ? 'Rotas Urbanas' : 'Rotas Interprovinciais') : 'Voos Disponíveis'}
             </h1>
             {/* <SearchModal onSearch={handleSearch} /> */} {/* Removed Search Modal */}
           </div>
@@ -222,7 +228,7 @@ const BilhetesClientComponent = () => {
           <TabsContent value="todos">
             <div className="space-y-4 mt-4">
               {filteredTickets.map((ticket) => (
-                <TicketCard key={ticket.id} ticket={ticket} selectTicket={handleModalOpen} />
+                <TicketCard key={ticket.id} ticket={ticket} selectTicket={handleModalOpen} searchType={searchType} />
               ))}
             </div>
           </TabsContent>
@@ -230,7 +236,7 @@ const BilhetesClientComponent = () => {
           <TabsContent value="maisBaratos">
             <div className="space-y-4 mt-4">
               {sortedTicketsByPrice.map((ticket) => (
-                <TicketCard key={ticket.id} ticket={ticket} selectTicket={()=>{handleModalOpen(ticket)}} />
+                <TicketCard key={ticket.id} ticket={ticket} selectTicket={()=>{handleModalOpen(ticket)}} searchType={searchType} />
               ))}
             </div>
           </TabsContent>
@@ -238,7 +244,7 @@ const BilhetesClientComponent = () => {
           <TabsContent value="maisRapidos">
             <div className="space-y-4 mt-4">
               {sortedTicketsBySpeed.map((ticket) => (
-                <TicketCard key={ticket.id} ticket={ticket} selectTicket={handleModalOpen} />
+                <TicketCard key={ticket.id} ticket={ticket} selectTicket={handleModalOpen} searchType={searchType} />
               ))}
             </div>
           </TabsContent>
@@ -249,7 +255,7 @@ const BilhetesClientComponent = () => {
   );
 };
 
-const TicketCard = ({ ticket, selectTicket }) => {
+const TicketCard = ({ ticket, selectTicket, searchType }) => { // Added searchType prop
   return (
     <div className="relative group">
       <div className="absolute -inset-0.5 bg-orange-500 rounded-2xl opacity-50 group-hover:opacity-75 transition duration-300 blur-sm animate-pulse"></div>
@@ -257,7 +263,11 @@ const TicketCard = ({ ticket, selectTicket }) => {
         <div className="flex justify-between items-center mb-4">
           <img src={ticket.company_logo} alt="Company Logo" className="h-8 w-auto mr-4" />
           <div className="flex items-center space-x-2">
-            <Bus className="text-orange-500" />
+            {searchType === 'bus' ? (
+              <Bus className="text-orange-500" />
+            ) : (
+              <Plane className="text-orange-500" />
+            )}
             <h2 className="text-xl font-bold text-white">{ticket.company_name}</h2>
           </div>
           <div className="bg-orange-600/20 text-orange-300 px-3 py-1 rounded-full text-sm">
@@ -282,6 +292,16 @@ const TicketCard = ({ ticket, selectTicket }) => {
             <strong>{ticket.duration}</strong>
           </div>
         </div>
+
+        {searchType === 'plane' && ticket.flight_number && (
+          <div className="flex items-center space-x-2 text-white mb-4">
+            <Ticket className="text-orange-500" />
+            <div>
+              <p className="text-sm text-gray-400">Voo</p>
+              <strong className="text-white">{ticket.flight_number} ({ticket.airline_code})</strong>
+            </div>
+          </div>
+        )}
 
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
