@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Bus, Plane, Train, Ship, Calendar, User, Search, Percent, Umbrella, Briefcase, Heart, Bookmark } from 'lucide-react'; // Import Lucide icons
+import { Bus, Plane, Train, Ship, Calendar, User, Search, Percent, Umbrella, Briefcase, Heart, Bookmark, Car, Hotel, Hospital,HandPlatter } from 'lucide-react'; // Import Lucide icons
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'; // Import Supabase client
 import { useAuth } from '../context/AuthContext'; // Import useAuth
 import './style.css'; // Import the new CSS file
@@ -469,12 +469,7 @@ export default function Home() { // Renamed to Home as per user's move
                         </div>
                     )}
                     
-                    <div className="form-group">
-                        <div className="icon-wrapper">
-                            <User size={20} />
-                        </div>
-                        <input type="text" className="form-control" placeholder="1 Adulto, Economia" />
-                    </div>
+      
 
                     <button type="submit" className="search-btn">
                         {SearchButtonIconComponent && <SearchButtonIconComponent size={20} />} {searchBtnText}
@@ -490,40 +485,33 @@ export default function Home() { // Renamed to Home as per user's move
                 </div>
                 
                 <div className="quick-actions">
-                <div className="action-card">
-                    <div className="action-icon">
-                        <Search size={20} />
+                    <div className="action-card">
+                        <div className="action-icon">
+                            <Car size={20} />
+                        </div>
+                        <div className="action-title">Rent-a-Car</div>
                     </div>
-                    <div className="action-title">Última Hora</div>
-                </div>
-                
-                <div className="action-card">
-                    <div className="action-icon">
-                        <Percent size={20} />
+                    
+                    <div className="action-card">
+                        <div className="action-icon">
+                            <HandPlatter size={20} />
+                        </div>
+                        <div className="action-title">HandPlatteres</div>
                     </div>
-                    <div className="action-title">Promoções</div>
-                </div>
-                
-                <div className="action-card">
-                    <div className="action-icon">
-                        <Umbrella size={20} />
+                    
+                    <div className="action-card">
+                        <div className="action-icon">
+                            <Hotel size={20} />
+                        </div>
+                        <div className="action-title">Hotéis/resorts</div>
                     </div>
-                    <div className="action-title">Férias</div>
-                </div>
-                
-                <div className="action-card">
-                    <div className="action-icon">
-                        <Briefcase size={20} />
+                    
+                    <div className="action-card">
+                        <div className="action-icon">
+                            <Hospital size={20} />
+                        </div>
+                        <div className="action-title">Hospitais</div>
                     </div>
-                    <div className="action-title">Negócios</div>
-                </div>
-                
-                <div className="action-card">
-                    <div className="action-icon">
-                        <Heart size={20} />
-                    </div>
-                    <div className="action-title">Guardados</div>
-                </div>
                 </div>
 
                 {/* Ads Section */}
