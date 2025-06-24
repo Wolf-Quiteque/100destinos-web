@@ -11,6 +11,7 @@ import {
 import generatePassengerTickets from '../pagamento/generatePassengerTickets';
 import { useRouter, useSearchParams } from 'next/navigation';
 import BusTicketLoader from '../components/BusTicketLoader';
+import Iconholder from '../components/Iconholder';
 
 function ThankYouScreenContent({ searchType }) {
   const searchParams = useSearchParams();
@@ -137,7 +138,7 @@ function ThankYouScreenContent({ searchType }) {
         >
           <div className="grid md:grid-cols-3 gap-4 text-white">
             <div className="flex flex-col items-center">
-              <Bus className="text-orange-500 mb-2" />
+             <Iconholder type={searchType} />
               <span className="text-sm">Origem</span>
               <strong>{bookingInfo.origin}</strong>
             </div>
@@ -191,8 +192,6 @@ function ThankYouScreenContent({ searchType }) {
   );
 }
 
-import { useSearchParams } from 'next/navigation';
-import BusTicketLoader from '../components/BusTicketLoader';
 
 export default function ThankYouScreen() {
   const searchParams = useSearchParams();

@@ -8,7 +8,7 @@ import {
   DialogDescription,
   DialogFooter // Import DialogFooter
 } from "@/components/ui/dialog";
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react'; // Import Loader2
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,8 @@ const PassengerModal = ({
   const supabase = createClientComponentClient();
   const router = useRouter();
   const { toast } = useToast();
+    const searchParams = useSearchParams(); // Hook to get URL params
+  
   const [profileLoading, setProfileLoading] = useState(false); // Loading state for profile fetch
 
   // Default passenger structure (idNumber removed)
@@ -261,9 +263,11 @@ const PassengerModal = ({
         profile_id_param: profileId, // Buyer's profile ID
         route_type_param: ticket.type // Pass the route type
       });
+    const typeParam = searchParams.get('type')
+
 
       if (error) throw error;
-      router.push(`/pagamento?bookingId=${bookingId}`);
+      router.push(`/pagamento?bookingId=${bookingId}&type=${typeParam}`);
       onClose();
     } catch (error) {
       console.error('Booking error:', error);

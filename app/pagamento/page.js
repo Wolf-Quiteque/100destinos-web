@@ -20,11 +20,12 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import BusTicketLoader from '../components/BusTicketLoader';
 import { Button } from '@/components/ui/button'; // Import Button component
 
-function PaymentScreenContent({searchType}) {
+export default function PaymentScreenContent({}) {
   const supabase = createClientComponentClient();
   const router = useRouter();
   const searchParams = useSearchParams();
   const bookingId = searchParams.get('bookingId');
+  const searchType = searchParams.get('type')
    const { toast } = useToast();
 
    const [bookingDetails, setBookingDetails] = useState(null);
@@ -120,7 +121,7 @@ function PaymentScreenContent({searchType}) {
         description: "O seu bilhete foi confirmado com sucesso.",
       });
 
-      router.push(`/obrigado?bookingId=${bookingId}`);
+      router.push(`/obrigado?bookingId=${bookingId}&type=${searchType}`);
     } catch (error) {
       console.error('Error confirming booking or fetching data:', error);
       toast({
@@ -327,11 +328,11 @@ function PaymentScreenContent({searchType}) {
   };
 
   if (loading) {
-    return <BusTicketLoader />;
+    return <BusTicketLoader type={searchType} />;
   }
 
   if (!bookingDetails || !userProfile) {
-    return <BusTicketLoader />; // Or return null or a specific message
+    return <BusTicketLoader type={searchType} />; // Or return null or a specific message
   }
 
   const totalPrice = bookingDetails.total_price;
@@ -495,14 +496,3 @@ function PaymentScreenContent({searchType}) {
 
 
 
-export default function PaymentScreen() {
-  const searchParams = useSearchParams();
-  const searchType = searchParams.get('type')
-  console.log(searchType);
-
-  return (
-    <Suspense fallback={<BusTicketLoader type={searchType} />}>
-      <PaymentScreenContent searchType={searchType} />
-    </Suspense>
-  );
-}
