@@ -8,6 +8,7 @@ import PassengerModal from './PassengerModal';
 import SearchModal from './SearchModal';
 import { Button } from '@/components/ui/button'; // Assuming Button component exists
 import { Suspense } from 'react'; // Import Suspense (React is already imported)
+import BusTicketLoader from '../components/BusTicketLoader';
 
 // Rename the main component and keep its logic
 const BilhetesClientComponent = () => {
@@ -24,9 +25,10 @@ const BilhetesClientComponent = () => {
   const [searchDeparture, setSearchDeparture] = useState(''); // State for URL departure
   const [searchDestination, setSearchDestination] = useState(''); // State for URL destination
   const [searchDate, setSearchDate] = useState(''); // State for URL date
+  const [searchType, setSearchType] = useState(''); // State for URL date
+
   const [searchIsRoundTrip, setSearchIsRoundTrip] = useState(false); // State for URL isRoundTrip
   const [searchReturnDate, setSearchReturnDate] = useState(''); // State for URL returnDate
-  const [searchType, setSearchType] = useState(''); // New state for route type (bus/plane)
 
   useEffect(() => {
     // Get search params from URL
@@ -35,14 +37,14 @@ const BilhetesClientComponent = () => {
     const dateParam = searchParams.get('date');
     const isRoundTripParam = searchParams.get('isRoundTrip') === 'true';
     const returnDateParam = searchParams.get('returnDate');
-    const typeParam = searchParams.get('type'); // Get the new type parameter
+    const typeParam = searchParams.get('type')
+    console.log(typeParam)
 
     setSearchDeparture(departureParam || '');
     setSearchDestination(destinationParam || '');
     setSearchDate(dateParam || '');
     setSearchIsRoundTrip(isRoundTripParam);
     setSearchReturnDate(returnDateParam || '');
-    setSearchType(typeParam || 'bus'); // Default to 'bus' if not specified
 
     // Determine urban/interprovincial from localStorage (only relevant for bus)
     const userSelect = localStorage.getItem('userSelect');
@@ -50,7 +52,8 @@ const BilhetesClientComponent = () => {
     setIsUrban(urbanStatus);
 
     // Fetch routes based on type and other params
-    fetchRoutes(typeParam || 'bus', urbanStatus, departureParam, destinationParam, dateParam);
+    fetchRoutes(typeParam, urbanStatus, departureParam, destinationParam, dateParam);
+    setSearchType(typeParam);
 
   }, [searchParams]); // Re-run if searchParams change
 
@@ -169,11 +172,8 @@ const BilhetesClientComponent = () => {
   const handleModalOpen = (ticket) => { setSelectedTicket(ticket); setDialog(true); }
 
   if (loading) {
-    // Updated loading indicator
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-orange-800 flex items-center justify-center">
-        <Loader2 className="h-16 w-16 text-orange-500 animate-spin" />
-      </div>
+    <BusTicketLoader type={searchType} />
     );
   } // Corrected: Removed extra brace, semicolon, and duplicated lines/blocks
 
@@ -255,26 +255,35 @@ const BilhetesClientComponent = () => {
   );
 };
 
-const TicketCard = ({ ticket, selectTicket, searchType }) => { // Added searchType prop
+const TicketCard = ({ ticket, selectTicket, searchType }) => {
   return (
     <div className="relative group">
+      {/* Background glow */}
       <div className="absolute -inset-0.5 bg-orange-500 rounded-2xl opacity-50 group-hover:opacity-75 transition duration-300 blur-sm animate-pulse"></div>
+
       <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-orange-500 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl">
-        <div className="flex justify-between items-center mb-4">
-          <img src={ticket.company_logo} alt="Company Logo" className="h-8 w-auto mr-4" />
+        
+        {/* Header */}
+        <div className="flex items-center mb-4">
+          <img src={ticket.company_logo} style={{maxWidth:'80px'}} alt="Company Logo" className="h-8 w-28 mr-4" />
+          
           <div className="flex items-center space-x-2">
             {searchType === 'bus' ? (
               <Bus className="text-orange-500" />
             ) : (
               <Plane className="text-orange-500" />
             )}
-            <h2 className="text-xl font-bold text-white">{ticket.company_name}</h2>
+            <h2 className="text-lg font-bold text-white">
+              {ticket.company_name.length > 21 ? `${ticket.company_name.slice(0, 21)}...` : ticket.company_name}
+
+              
+            </h2>
           </div>
-          <div className="bg-orange-600/20 text-orange-300 px-3 py-1 rounded-full text-sm">
-            {ticket.available_seats} lugares {/* Shortened text */}
-          </div>
+
+       
         </div>
 
+        {/* Travel Info */}
         <div className="grid grid-cols-3 gap-4 text-white mb-4">
           <div className="flex flex-col items-center">
             <MapPin className="text-orange-500 mb-2" />
@@ -293,6 +302,7 @@ const TicketCard = ({ ticket, selectTicket, searchType }) => { // Added searchTy
           </div>
         </div>
 
+        {/* Optional Flight Info */}
         {searchType === 'plane' && ticket.flight_number && (
           <div className="flex items-center space-x-2 text-white mb-4">
             <Ticket className="text-orange-500" />
@@ -303,24 +313,47 @@ const TicketCard = ({ ticket, selectTicket, searchType }) => { // Added searchTy
           </div>
         )}
 
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <Ticket className="text-orange-500" />
-            <div>
-              <p className="text-sm text-gray-400">Partida</p>
-              <strong className="text-white">{ticket.departure_time}</strong>
+        {/* Price on its own row */}
+        <div className="text-center mb-4 sm:mb-2">
+          <span className="text-2xl font-bold text-orange-500 block">
+            {ticket.base_price.toLocaleString('pt-AO', {
+              style: 'currency',
+              currency: 'AOA'
+            })}
+          </span>
+        </div>
+
+        {/* Departure / Arrival / Button */}
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Ticket className="text-orange-500" />
+              <div>
+                <p className="text-sm text-gray-400">Partida</p>
+                <strong className="text-white">{ticket.departure_time}</strong>
+              </div>
             </div>
-            <div className="mx-4 h-8 w-px bg-gray-600"></div>
-            <div>
-              <p className="text-sm text-gray-400">Chegada</p>
-              <strong className="text-white">{ticket.arrival_time}</strong>
+
+            <div className="h-8 w-px bg-gray-600"></div>
+
+            <div className="flex items-center space-x-2">
+              <div>
+                <p className="text-sm text-gray-400">Chegada</p>
+                <strong className="text-white">{ticket.arrival_time}</strong>
+              </div>
+            </div>
+             <div className="flex items-center space-x-2">
+                <div className="bg-orange-600/20 text-orange-300 px-3 py-1 rounded-full text-sm">
+            {ticket.available_seats} lugares
+          </div>
             </div>
           </div>
-          <div className="flex flex-col items-end">
-            <span className="text-2xl font-bold text-orange-500">
-              {ticket.base_price.toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' })}
-            </span>
-            <button onClick={() => selectTicket(ticket)  } className="mt-2 px-4 py-2 bg-orange-600 text-white rounded-full hover:bg-orange-700 transition-colors">
+
+          <div className="sm:ml-auto">
+            <button
+              onClick={() => selectTicket(ticket)}
+              className="w-full sm:w-auto px-4 py-2 bg-orange-600 text-white rounded-full hover:bg-orange-700 transition-colors"
+            >
               Selecionar
             </button>
           </div>
@@ -330,20 +363,16 @@ const TicketCard = ({ ticket, selectTicket, searchType }) => { // Added searchTy
   );
 };
 
-// New default export for the page, wrapping the client component in Suspense
+
+
+
 export default function BilhetesPage() {
+  const searchParams = useSearchParams();
+  const searchType = searchParams.get('type')
+
   return (
-    <Suspense fallback={<LoadingFallback />}>
-      <BilhetesClientComponent />
+    <Suspense fallback={<BusTicketLoader type={searchType} />}>
+      <BilhetesClientComponent searchType={searchType} />
     </Suspense>
   );
 }
-
-// Simple loading fallback component
-const LoadingFallback = () => {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-orange-800 flex items-center justify-center">
-      <Loader2 className="h-16 w-16 text-orange-500 animate-spin" />
-    </div>
-  );
-};

@@ -2,8 +2,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Bus } from 'lucide-react';
+import TransportationLoader from './TransportationLoader';
 
-const BusTicketLoader = () => {
+const BusTicketLoader = ({ type }) => {
+  
   return (
     <div className="min-h-screen min-w-screen flex items-center justify-center">
       <motion.div 
@@ -24,11 +26,8 @@ const BusTicketLoader = () => {
           }}
           className="flex items-center justify-center"
         >
-          <Bus 
-            className="text-orange-500" 
-            size={64} 
-            strokeWidth={1.5} 
-          />
+          {type && <TransportationLoader type={type} />}
+        
         </motion.div>
         
         <motion.div 
@@ -66,6 +65,7 @@ const BusTicketLoader = () => {
           A carregar bilhetes...
         </motion.p>
       </motion.div>
+      
     </div>
   );
 };

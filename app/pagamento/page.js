@@ -20,7 +20,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import BusTicketLoader from '../components/BusTicketLoader';
 import { Button } from '@/components/ui/button'; // Import Button component
 
-function PaymentScreenContent() {
+function PaymentScreenContent({searchType}) {
   const supabase = createClientComponentClient();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -493,10 +493,16 @@ function PaymentScreenContent() {
   );
 }
 
+
+
 export default function PaymentScreen() {
+  const searchParams = useSearchParams();
+  const searchType = searchParams.get('type')
+  console.log(searchType);
+
   return (
-    <Suspense fallback={<BusTicketLoader />}>
-      <PaymentScreenContent />
+    <Suspense fallback={<BusTicketLoader type={searchType} />}>
+      <PaymentScreenContent searchType={searchType} />
     </Suspense>
   );
 }

@@ -12,7 +12,7 @@ import generatePassengerTickets from '../pagamento/generatePassengerTickets';
 import { useRouter, useSearchParams } from 'next/navigation';
 import BusTicketLoader from '../components/BusTicketLoader';
 
-function ThankYouScreenContent() {
+function ThankYouScreenContent({ searchType }) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -191,10 +191,16 @@ function ThankYouScreenContent() {
   );
 }
 
+import { useSearchParams } from 'next/navigation';
+import BusTicketLoader from '../components/BusTicketLoader';
+
 export default function ThankYouScreen() {
+  const searchParams = useSearchParams();
+  const searchType = searchParams.get('type') || 'bus';
+
   return (
-    <Suspense fallback={<BusTicketLoader />}>
-      <ThankYouScreenContent />
+    <Suspense fallback={<BusTicketLoader type={searchType} />}>
+      <ThankYouScreenContent searchType={searchType} />
     </Suspense>
   );
 }
