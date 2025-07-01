@@ -129,7 +129,7 @@ export default function Hoteis() {
                     </div>
                 </div>
 
-                <div className="content-wrapper" style={{marginTop: '300px'}}>
+<div className="content-wrapper" style={{marginTop: '300px'}}>
                     <div className="section-title">
                         Ofertas Especiais
                     </div>
@@ -146,6 +146,19 @@ export default function Hoteis() {
                             <p>Inclui jantar e espumante</p>
                             <button>Ver Oferta</button>
                         </div>
+                    </div>
+
+                    <div className="section-title">
+                        Anúncios
+                    </div>
+                    <div className="ads-carousel">
+                        {adImages.map((img, index) => (
+                            <div
+                                key={img}
+                                className={`ad-slide ${index === currentAdIndex ? 'active' : ''}`}
+                                style={{ backgroundImage: `url(${img})` }}
+                            ></div>
+                        ))}
                     </div>
 
                     <div className="section-title">
