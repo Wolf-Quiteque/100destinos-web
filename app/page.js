@@ -522,7 +522,7 @@ export default function Home() { // Renamed to Home as per user's move
 
                 {/* Ads Section */}
                 <div className="section-title">
-                    Publicidade
+                    Anúncios
                 </div>
                 <div className="ads-carousel">
                     {adImages.map((img, index) => (
