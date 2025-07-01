@@ -367,12 +367,9 @@ const TicketCard = ({ ticket, selectTicket, searchType }) => {
 
 
 export default function BilhetesPage() {
-  const searchParams = useSearchParams();
-  const searchType = searchParams.get('type')
-
   return (
-    <Suspense fallback={<BusTicketLoader type={searchType} />}>
-      <BilhetesClientComponent searchType={searchType} />
+    <Suspense fallback={<BusTicketLoader />}>
+      <BilhetesClientComponent />
     </Suspense>
   );
 }

@@ -13,9 +13,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import BusTicketLoader from '../components/BusTicketLoader';
 import Iconholder from '../components/Iconholder';
 
-function ThankYouScreenContent({ searchType }) {
+function ThankYouScreenContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const searchType = searchParams.get('type') || 'bus';
+
 
   const [animationStage, setAnimationStage] = useState(0);
   const [bookingInfo, setBookingInfo] = useState({ origin: 'N/A', destination: 'N/A', passengerCount: 0 }); // State for booking info
@@ -194,12 +196,9 @@ function ThankYouScreenContent({ searchType }) {
 
 
 export default function ThankYouScreen() {
-  const searchParams = useSearchParams();
-  const searchType = searchParams.get('type') || 'bus';
-
   return (
-    <Suspense fallback={<BusTicketLoader type={searchType} />}>
-      <ThankYouScreenContent searchType={searchType} />
+    <Suspense fallback={<BusTicketLoader />}>
+      <ThankYouScreenContent />
     </Suspense>
   );
 }
