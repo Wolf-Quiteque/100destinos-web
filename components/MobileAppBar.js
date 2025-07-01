@@ -8,8 +8,8 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext'; // Import useAuth
 
 const baseNavItems = [
-  { href: '/hoteis', label: 'Hotel', icon: Hotel },
-  { href: '/viagens', label: 'Rent-a-car', icon: Car },
+  { href: '/hoteis', label: 'Hoteis', icon: Hotel },
+  { href: '/rent-a-car', label: 'Rent-a-car', icon: Car },
   { href: '/', label: 'Pesquisar', icon: Search },
   { href: '/meus-bilhetes', label: 'Reservas', icon: Ticket, requiresAuth: true }, // Mark as requiring auth
   { href: '/perfil', label: 'Perfil', icon: User, requiresAuth: true }, // Mark as requiring auth

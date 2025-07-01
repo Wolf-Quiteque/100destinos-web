@@ -22,12 +22,12 @@
          <link rel="manifest" href="/manifest.json" />
          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
        </head>
-       <body >
+       <body>
          {/* Wrap children with ClientLayout */}
          <ClientLayout>
            {children}
          </ClientLayout>
-         {/* <FuturisticNavBar /> */}
+         {/* <FuturisticNavBar /> from-orange-900 via-gray-900 to-black*/}
          {/* Removed InstallPwaButton, MobileAppBar, Toaster direct rendering */}
        </body>
      </html>

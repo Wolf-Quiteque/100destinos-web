@@ -29,7 +29,7 @@ import { useAuth } from '@/context/AuthContext'; // Import useAuth
 // Re-use navItems from MobileAppBar logic
 const navItems = [
    { href: '/hoteis', label: 'Hotel', icon: Hotel },
-  { href: '/viagens', label: 'Rent-a-car', icon: Car },
+  { href: '/rent-a-car', label: 'Rent-a-car', icon: Car },
   { href: '/', label: 'Pesquisar', icon: Search },
   { href: '/meus-bilhetes', label: 'Reservas', icon: Ticket },
   { href: '/perfil', label: 'Perfil', icon: User },
