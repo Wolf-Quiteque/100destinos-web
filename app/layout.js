@@ -22,7 +22,7 @@
          <link rel="manifest" href="/manifest.json" />
          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
        </head>
-       <body>
+       <body >
          {/* Wrap children with ClientLayout */}
          <ClientLayout>
            {children}

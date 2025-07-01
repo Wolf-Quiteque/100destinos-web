@@ -488,327 +488,165 @@ body {
         height: 100px;
     }
 }
-/* New Perfil Page Styles */
-.profile-header {
-    padding: 24px 0;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-}
+/* Add these to your existing style.css */
 
-.profile-avatar {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background-color: var(--primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--light);
-    font-size: 36px;
-    font-weight: bold;
-    margin-bottom: 16px;
-    border: 3px solid var(--primary-light);
-    box-shadow: 0 0 0 4px rgba(255, 94, 20, 0.2);
-}
+/* Desktop-specific styles (min-width: 1024px) */
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1200px;
+    padding: 0 40px;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 30px;
+    margin-top: 40px;
+  }
 
-.profile-name {
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
+  /* Header adjustments */
+  .header {
+    height: 400px;
+    padding-top: 80px;
+  }
 
-.profile-status {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--primary);
-    font-size: 14px;
-    margin-bottom: 16px;
-}
+  .header-content {
+    padding: 0 40px;
+  }
 
-.profile-status i {
-    margin-right: 6px;
-}
+  .header-top {
+    margin-bottom: 60px;
+  }
 
-.stats-container {
-    display: flex;
-    justify-content: space-around;
-    width: 100%;
-    margin-top: 16px;
-}
+  .angola-logo-center {
+    margin-top: 120px;
+  }
 
-.stat-item {
-    text-align: center;
-}
-
-.stat-value {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--primary);
-}
-
-.stat-label {
-    font-size: 12px;
-    color: var(--gray);
-    margin-top: 4px;
-}
-
-/* Navegação */
-.profile-nav {
-    display: flex;
-    background-color: var(--dark-light);
-    border-radius: 12px;
-    padding: 4px;
-    margin: 20px 0;
-}
-
-.profile-nav-item {
-    flex: 1;
-    text-align: center;
-    padding: 10px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.profile-nav-item.active {
-    background-color: var(--primary);
-    color: var(--light);
-}
-
-/* Histórico */
-.section-title {
-    font-size: 18px;
-    font-weight: 600;
-    margin: 24px 0 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.see-all {
-    font-size: 12px;
-    color: var(--primary);
-    font-weight: 500;
-}
-
-.timeline {
-    position: relative;
-    padding-left: 24px;
-    margin-top: 16px;
-}
-
-.timeline::before {
-    content: '';
-    position: absolute;
-    left: 7px;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background-color: rgba(255, 94, 20, 0.3);
-}
-
-.timeline-item {
-    position: relative;
-    padding-bottom: 24px;
-}
-
-.timeline-dot {
-    position: absolute;
-    left: -24px;
-    top: 4px;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background-color: var(--primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.timeline-dot::after {
-    content: '';
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: var(--light);
-}
-
-.timeline-content {
-    background-color: var(--dark-light);
-    border-radius: 16px;
-    padding: 16px;
-    transition: all 0.3s ease;
-}
-
-.timeline-content:hover {
-    transform: translateX(4px);
-}
-
-.trip-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 12px;
-}
-
-.trip-date {
-    font-size: 12px;
-    color: var(--gray);
-    background-color: rgba(255, 255, 255, 0.05);
-    padding: 4px 8px;
+  /* Search card becomes a sidebar */
+  .search-card {
+    position: sticky;
+    top: 40px;
+    height: fit-content;
+    margin-top: 0;
     border-radius: 20px;
-}
+    padding: 30px;
+    grid-column: 1;
+    align-self: start;
+  }
 
-.trip-route {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 8px;
-}
+  /* Main content area */
+  .main-content {
+    grid-column: 2;
+  }
 
-.trip-details {
-    font-size: 12px;
-    color: var(--gray);
-    display: flex;
-    gap: 12px;
-}
+  /* Search form adjustments */
+  .search-form {
+    gap: 20px;
+  }
 
-.trip-detail {
-    display: flex;
-    align-items: center;
-}
+  .form-group {
+    margin-bottom: 20px;
+  }
 
-.trip-detail i {
-    margin-right: 4px;
-    color: var(--primary);
-    font-size: 10px;
-}
+  /* Quick actions grid */
+  .quick-actions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    overflow-x: visible;
+  }
 
-.trip-image {
-    width: 100%;
-    height: 120px;
-    border-radius: 12px;
-    margin-top: 12px;
-    background-size: cover;
-    background-position: center;
-    position: relative;
-    overflow: hidden;
-}
+  .action-card {
+    min-width: auto;
+    height: 140px;
+    padding: 20px;
+  }
 
-.trip-image::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 50%);
-}
+  .action-icon {
+    width: 50px;
+    height: 50px;
+  }
 
-.trip-location {
-    position: absolute;
-    bottom: 12px;
-    left: 12px;
-    color: var(--light);
-    font-weight: 600;
-    z-index: 2;
-}
+  .action-title {
+    font-size: 14px;
+  }
 
-/* Conquistas */
-.badges-section {
-    margin-top: 32px;
-}
-
-.badges-grid {
+  /* Popular routes grid */
+  .popular-routes {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-top: 16px;
-}
+    gap: 20px;
+  }
 
-.badge-card {
-    background-color: var(--dark-light);
-    border-radius: 12px;
-    padding: 16px 8px;
-    display: flex;
+  .route-card {
+    height: 180px;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
-    transition: all 0.3s ease;
+  }
+
+  .route-image {
+    width: 100%;
+    height: 100px;
+  }
+
+  .route-info {
+    padding: 16px;
+  }
+
+  /* Ads carousel larger */
+  .ads-carousel {
+    height: 200px;
+    border-radius: 20px;
+  }
+
+  /* Section titles larger */
+  .section-title {
+    font-size: 22px;
+    margin: 40px 0 20px;
+  }
+
+  .see-all {
+    font-size: 14px;
+  }
+
+  /* Avatar visible and positioned */
+  .avatar {
+    margin-top: -40px;
+    display: flex;
+    width: 60px;
+    height: 60px;
+    font-size: 28px;
+  }
+
+  /* Logo visible */
+  .logo {
+    margin-left:60px;
+    margin-top: -40px;
+    display: block;
+    width: 180px;
+    height: auto;
+  }
+
+
+
+
+
 }
 
-.badge-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 16px rgba(255, 94, 20, 0.1);
-}
-
-.badge-card.locked {
-    opacity: 0.5;
-}
-
-.badge-icon {
-    width: 40px;
-    height: 40px;
+/* Add to your CSS */
+@media (min-width: 1024px) {
+  .action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .route-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  }
+  
+  .tab:hover:not(.active) {
     background-color: rgba(255, 94, 20, 0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 8px;
-}
-
-.badge-icon i {
-    color: var(--primary);
-    font-size: 16px;
-}
-
-.badge-icon.locked i {
-    color: var(--gray);
-}
-
-.badge-name {
-    font-size: 12px;
-    font-weight: 500;
-    margin-bottom: 4px;
-}
-
-.badge-date {
-    font-size: 10px;
-    color: var(--gray);
-}
-
-/* Navegação inferior */
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: var(--dark-light);
-    display: flex;
-    justify-content: space-around;
-    padding: 12px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: var(--gray);
-    font-size: 10px;
-}
-
-.nav-item.active {
-    color: var(--primary);
-}
-
-.nav-icon {
-    font-size: 20px;
-    margin-bottom: 4px;
+  }
+  
+  .search-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(255, 94, 20, 0.3);
+  }
 }

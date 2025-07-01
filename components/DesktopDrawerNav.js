@@ -20,17 +20,18 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Menu, User, LogOut, Compass, Bus, Search, Ticket, Loader2 } from 'lucide-react';
+import { Menu, User, LogOut, Compass, Bus, Search, Ticket, Loader2,Car,
+Hotel } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/context/AuthContext'; // Import useAuth
 
 // Re-use navItems from MobileAppBar logic
 const navItems = [
-  { href: '/', label: 'Explora', icon: Compass },
-  { href: '/viagens', label: 'Viagens', icon: Bus },
-  { href: '/pesquisar', label: 'Pesquisar', icon: Search },
-  { href: '/meus-bilhetes', label: 'Bilhetes', icon: Ticket },
+   { href: '/hoteis', label: 'Hotel', icon: Hotel },
+  { href: '/viagens', label: 'Rent-a-car', icon: Car },
+  { href: '/', label: 'Pesquisar', icon: Search },
+  { href: '/meus-bilhetes', label: 'Reservas', icon: Ticket },
   { href: '/perfil', label: 'Perfil', icon: User },
 ];
 
@@ -155,56 +156,6 @@ export default function DesktopDrawerNav() {
         </DrawerContent>
       </Drawer>
 
-      {/* Right: Profile/Login */}
-      <div className="relative">
-        {isLoading ? ( // Use combined loading state
-          <div className="h-12 w-12 rounded-full bg-gray-300/50 animate-pulse"></div>
-        ) : user ? ( // Use user from context
-          <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-            <PopoverTrigger asChild>
-              {/* Style: Orange background with opacity, white icon */}
-              <Button className="relative h-12 w-12 rounded-full bg-orange-500/80 hover:bg-orange-500 text-white shadow-lg p-0 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-400 focus-visible:ring-offset-gray-900">
-                <User className="h-6 w-6" />
-                <span className="sr-only">Abrir menu do usuário</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-56 mr-4 md:mr-8 bg-white border-gray-300 shadow-xl rounded-lg p-2 mt-2">
-              <div className="space-y-1">
-                <div className="px-3 py-2 border-b border-gray-200 mb-1">
-                  <p className="text-sm font-semibold text-gray-900 truncate">
-                    {profile?.nome || user.email} {/* Display profile name or email */}
-                  </p>
-                </div>
-                <Link
-                  href="/perfil"
-                  className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors"
-                  onClick={() => setIsPopoverOpen(false)}
-                >
-                  <User className="mr-2 h-4 w-4 text-gray-500" />
-                  Ver Perfil
-                </Link>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start px-3 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 rounded transition-colors"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Terminar Sessão
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
-        ) : (
-          <div className="flex items-center space-x-3">
-            <Button variant="outline" className="bg-white/90 text-orange-600 hover:bg-white rounded-full px-5 py-2 text-sm font-semibold shadow-md transition-all hover:shadow-lg" onClick={() => router.push('/login')}>
-              Entrar
-            </Button>
-            <Button className="bg-orange-500 text-white hover:bg-orange-600 rounded-full px-5 py-2 text-sm font-semibold shadow-md transition-all hover:shadow-lg" onClick={() => router.push('/signup')}>
-              Registar
-            </Button>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

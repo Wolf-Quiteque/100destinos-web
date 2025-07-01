@@ -1,0 +1,274 @@
+/* Perfil Page Styles */
+.profile-page {
+  min-height: 100vh;
+  background: #121212;
+  color: white;
+  padding: 1rem;
+}
+
+.profile-main {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Sidebar */
+.profile-sidebar {
+  background: #1E1E1E;
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.profile-header {
+  margin-bottom: 1.5rem;
+}
+
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #ff5e14, #ff8a4d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: bold;
+  color: white;
+  border: 4px solid #121212;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.profile-name {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.profile-status {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1rem;
+  color: #ff8a4d;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 94, 20, 0.1);
+  border-radius: 20px;
+}
+
+.stats-container {
+  display: flex;
+  justify-content: space-around;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ff5e14;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #E0E0E0;
+}
+
+.logout-btn-container {
+  margin-top: auto;
+}
+
+/* Right Content */
+.profile-content {
+  background: #1E1E1E;
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.profile-nav {
+  display: flex;
+  background: #121212;
+  border-radius: 12px;
+  padding: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.profile-nav-item {
+  flex: 1;
+  text-align: center;
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #E0E0E0;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.profile-nav-item.active {
+  background: #ff5e14;
+  color: white;
+}
+
+.section-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.see-all {
+  font-size: 0.9rem;
+  color: #ff8a4d;
+  text-decoration: none;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 25px;
+  border-left: 2px solid rgba(255, 94, 20, 0.3);
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -34px;
+  top: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #ff5e14;
+  border: 3px solid #1E1E1E;
+}
+
+.timeline-content {
+  background: #121212;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.trip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.trip-route {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.trip-details {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.9rem;
+  color: #E0E0E0;
+}
+
+.trip-date {
+  font-size: 0.9rem;
+  color: #E0E0E0;
+}
+
+.trip-image {
+  width: 100%;
+  height: 200px;
+  border-radius: 12px;
+  margin-top: 1rem;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.trip-location {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  color: white;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 0.3rem 0.8rem;
+  border-radius: 8px;
+}
+
+.badges-section {
+  margin-top: 2rem;
+}
+
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+}
+
+.badge-card {
+  background: #121212;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.badge-icon {
+  font-size: 2rem;
+  color: #ff8a4d;
+  margin-bottom: 0.5rem;
+}
+
+.badge-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.badge-date {
+  font-size: 0.7rem;
+  color: #E0E0E0;
+}
+
+.logout-btn {
+  width: 100%;
+  background: #ff5e14;
+  color: white;
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.logout-btn:hover {
+  background: #ff8a4d;
+}
+
+/* Desktop Layout */
+@media (min-width: 1024px) {
+  .profile-main {
+    grid-template-columns: 320px 1fr;
+  }
+
+  .profile-sidebar {
+    position: sticky;
+    top: 1.5rem;
+    height: calc(100vh - 3rem);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .profile-content {
+    padding: 2rem;
+  }
+}

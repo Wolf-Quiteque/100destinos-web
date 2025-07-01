@@ -2,15 +2,16 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation'; // Import useRouter
-import { Compass, Bus, Search, Ticket, User, X } from 'lucide-react'; // Import X icon
+import { Compass, Bus, Search, Ticket, User, X,Car,
+Hotel } from 'lucide-react'; // Import X icon
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext'; // Import useAuth
 
 const baseNavItems = [
-  { href: '/', label: 'Explora', icon: Compass },
-  { href: '/viagens', label: 'Viagens', icon: Bus },
-  { href: '/pesquisar', label: 'Pesquisar', icon: Search },
-  { href: '/meus-bilhetes', label: 'Bilhetes', icon: Ticket, requiresAuth: true }, // Mark as requiring auth
+  { href: '/hoteis', label: 'Hotel', icon: Hotel },
+  { href: '/viagens', label: 'Rent-a-car', icon: Car },
+  { href: '/', label: 'Pesquisar', icon: Search },
+  { href: '/meus-bilhetes', label: 'Reservas', icon: Ticket, requiresAuth: true }, // Mark as requiring auth
   { href: '/perfil', label: 'Perfil', icon: User, requiresAuth: true }, // Mark as requiring auth
 ];
 

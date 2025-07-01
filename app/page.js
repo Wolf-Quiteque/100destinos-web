@@ -1,3 +1,4 @@
+//  app/page.js
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -364,6 +365,11 @@ export default function Home() { // Renamed to Home as per user's move
                     </div>
                 </div>
             </header>
+
+
+            <div className='container bg-gradient-to-br'>
+
+           
             
             <div className="search-card">
                 <div className="search-tabs">
@@ -477,7 +483,7 @@ export default function Home() { // Renamed to Home as per user's move
                 </form>
             </div>
             
-            <div className="container">
+            <div className="main-content">
                 {/* Quick Actions */}
                 <div className="section-title">
                     Ações Rápidas
@@ -578,6 +584,7 @@ export default function Home() { // Renamed to Home as per user's move
                     </div>
                 </div>
             </div>
+             </div>
         </>
     );
 }
