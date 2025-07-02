@@ -393,16 +393,77 @@ body {
 }
 
 @media (max-width: 768px) {
+    .hero-section {
+        padding: 10px 0;
+        min-height: auto;
+    }
+    .content-wrapper {
+        padding: 0 15px;
+        padding-top: 20px;
+    }
+    .header-top {
+        margin-bottom: 16px;
+    }
+    .page-title {
+        font-size: 2.2rem;
+    }
+    .page-subtitle {
+        font-size: 1rem;
+    }
+    .search-card {
+        padding: 1.5rem;
+        margin-top: 20px;
+    }
     .search-form .form-row {
         grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
     }
     .search-form .form-row .form-group:first-child:last-child {
         grid-column: span 1;
     }
-    .page-title {
-        font-size: 2rem;
+    .form-control {
+        padding: 1rem 1rem 1rem 3.5rem;
+        font-size: 0.9rem;
+    }
+    .form-icon {
+        left: 1.2rem;
+    }
+    .section-title {
+        font-size: 1.5rem;
+        margin: 2rem 0 1rem;
     }
     .hotel-list, .special-offers, .room-types {
         grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    .room-type-image {
+        height: 200px;
+    }
+    .hotel-info {
+        padding: 1rem;
+    }
+}
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 1.8rem;
+    }
+    .page-subtitle {
+        font-size: 0.9rem;
+    }
+    .search-card {
+        padding: 1rem;
+    }
+    .form-control {
+        padding: 0.9rem 0.9rem 0.9rem 3rem;
+    }
+    .form-icon {
+        left: 1rem;
+    }
+    .offer-card {
+        padding: 1.5rem;
+    }
+    .offer-card h3 {
+        font-size: 1.2rem;
     }
 }

@@ -6,7 +6,6 @@ import { User, BedDouble, Calendar, Search, Star, Heart, Gift } from 'lucide-rea
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useAuth } from '../../context/AuthContext';
 import './style.css';
-import ClientLayout from '../ClientLayout';
 
 export default function Hoteis() {
     const router = useRouter();
@@ -51,15 +50,8 @@ export default function Hoteis() {
     }, [adImages.length]);
 
     return (
-        <ClientLayout>
-            <html lang="pt-BR">
-            <head>
-                <meta charSet="UTF-8" />
-                <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                <title>Reserva de Hotéis | Voyager</title>
-                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-            </head>
-            <body>
+        <>
+
                 <div className="main-container">
                     <div className="hero-section hotel-hero">
                         <div className="content-wrapper">
@@ -263,8 +255,7 @@ export default function Hoteis() {
                         </div>
                     </div>
                 </div>
-            </body>
-            </html>
-        </ClientLayout>
+     
+        </>
     );
 }
