@@ -41,7 +41,10 @@ const PassengerModal = ({
     name: '',
     age: '',
     sex: '',
-    seat: null
+    seat: null,
+    passportNumber: '',
+    passportIssueDate: '',
+    passportExpiryDate: ''
    };
 
    const [passengers, setPassengers] = useState([defaultPassenger]);
@@ -229,9 +232,19 @@ const PassengerModal = ({
     }
 
     // Validate all passengers in the list (excluding idNumber)
-    const firstInvalidPassenger = passengers.findIndex(p => !p.name || !p.age || !p.sex || !p.seat);
+    const typeParam = searchParams.get('type');
+    const firstInvalidPassenger = passengers.findIndex(p => {
+      if (typeParam === 'plane') {
+        return !p.name || !p.age || !p.sex || !p.seat || !p.passportNumber || !p.passportIssueDate || !p.passportExpiryDate;
+      }
+      return !p.name || !p.age || !p.sex || !p.seat;
+    });
+
     if (firstInvalidPassenger !== -1) {
-      toast({ variant: "destructive", title: "Atenção", description: `Preencha Nome, Idade, Sexo e selecione um assento para o Passageiro ${firstInvalidPassenger + 1}.` });
+      const message = typeParam === 'plane'
+        ? `Preencha todos os campos, incluindo os dados do passaporte para o Passageiro ${firstInvalidPassenger + 1}.`
+        : `Preencha Nome, Idade, Sexo e selecione um assento para o Passageiro ${firstInvalidPassenger + 1}.`;
+      toast({ variant: "destructive", title: "Atenção", description: message });
       return;
     }
 
@@ -254,7 +267,10 @@ const PassengerModal = ({
         booking_date_param: new Date().toISOString().split('T')[0],
         passengers_param: passengers.map(p => ({
             name: p.name, age: parseInt(p.age, 10), sex: p.sex,
-            seat_number: p.seat
+            seat_number: p.seat,
+            passport_number: p.passportNumber,
+            passport_issue_date: p.passportIssueDate,
+            passport_expiry_date: p.passportExpiryDate
         })),
         total_passengers_param: passengers.length,
         selected_seats_param: selectedSeats,
@@ -366,6 +382,29 @@ const PassengerModal = ({
                             {passenger.seat ? `Assento Selecionado: ${passenger.seat}` : "Selecionar Assento"}
                           </Button>
                         </div>
+                        {searchParams.get('type') === 'plane' && (
+                          <>
+                            <div className="md:col-span-2">
+                              <label className="block text-sm font-medium text-gray-300 mb-1">Número do Passaporte</label>
+                              <input type="text" value={passenger.passportNumber}
+                                onChange={(e) => updatePassenger(index, 'passportNumber', e.target.value)}
+                                placeholder="Número do Passaporte"
+                                className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500" />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-1">Data de Emissão</label>
+                              <input type="date" value={passenger.passportIssueDate}
+                                onChange={(e) => updatePassenger(index, 'passportIssueDate', e.target.value)}
+                                className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500" />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-1">Data de Expiração</label>
+                              <input type="date" value={passenger.passportExpiryDate}
+                                onChange={(e) => updatePassenger(index, 'passportExpiryDate', e.target.value)}
+                                className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500" />
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   ))}

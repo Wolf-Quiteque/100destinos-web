@@ -23,25 +23,25 @@ const generatePassengerTickets = async (bookingId) => {
       return;
     }
 
-    // 2. Fetch related bus_routes and bus_companies data separately
+    // 2. Fetch related route and company data from the available_routes view
     let route = null;
     let companyName = 'Unknown Company';
 
     if (bookingData.route_id) {
       const { data: routeData, error: routeError } = await supabase
-        .from('bus_routes')
-        .select('origin, destination, departure_time, bus_companies (name)')
+        .from('available_routes') // Use the view here
+        .select('origin, destination, departure_time, company_name') // Select company_name from the view
         .eq('id', bookingData.route_id)
         .single();
 
       if (routeError) {
-        console.error('Error fetching bus route:', routeError);
+        console.error('Error fetching route from view:', routeError);
         throw routeError;
       }
 
       if (routeData) {
         route = routeData;
-        companyName = routeData.bus_companies?.name || 'Unknown Company';
+        companyName = routeData.company_name || 'Unknown Company'; // Use the correct field
       }
     } else {
       console.warn('Booking does not have a route_id');
@@ -168,10 +168,10 @@ const generatePassengerTickets = async (bookingId) => {
       }
     }
 
-    // Update booking passengers with ticketIds (stored as JSON string)
+    // Update booking passengers with ticketIds
     const { error: updateError } = await supabase
       .from('bookings')
-      .update({ passengers: JSON.stringify(updatedPassengers) })
+      .update({ passengers: updatedPassengers }) // Store as a proper JSON object
       .eq('id', bookingId);
 
     if (updateError) {
