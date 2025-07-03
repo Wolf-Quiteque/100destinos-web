@@ -68,7 +68,7 @@ function ThankYouScreenContent() {
     try {
       await generatePassengerTickets(bookingId);
       // Consider adding a success toast here
-      router.push("/pesquisar"); // Redirect after initiating download
+      router.push("/"); // Redirect after initiating download
     } catch (error) {
        console.error("Error generating PDF:", error);
        // Optionally show an error toast
