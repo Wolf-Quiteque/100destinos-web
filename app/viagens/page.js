@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
-import { Loader2, Ticket, MapPin, Clock, Calendar as CalendarIcon, AlertCircle, Bus } from 'lucide-react';
+import { Loader2, Ticket, MapPin, Clock, Calendar as CalendarIcon, AlertCircle, Bus, Plane } from 'lucide-react';
 import { format, isToday, isFuture, parseISO, parse, setHours, setMinutes, setSeconds, isAfter } from 'date-fns'; // Added setHours, setMinutes, setSeconds, isAfter
 
 // Helper function to combine date and time
@@ -32,8 +32,7 @@ const getCombinedDateTime = (bookingDateStr, timeStr) => {
 
 // Reusing BookingCard component structure from meus-bilhetes
 const BookingCard = ({ booking }) => {
-  const route = booking.bus_routes;
-  const company = route?.bus_companies;
+  const route = booking.available_routes; // Use available_routes
 
   if (!route) {
     return (
@@ -56,12 +55,16 @@ const BookingCard = ({ booking }) => {
       <div className="p-4">
         <div className="flex justify-between items-start mb-3">
           <div className="flex items-center space-x-2">
-            {company?.logo_url ? (
-              <img src={company.logo_url} alt={company.name || 'Logo'} className="h-6 w-auto" />
+            {route.company_logo ? (
+              <img src={route.company_logo} alt={route.company_name || 'Logo'} className="h-6 w-auto" />
             ) : (
-              <Bus className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+              route.type === 'bus' ? (
+                <Bus className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+              ) : (
+                <Plane className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+              )
             )}
-            <span className="text-lg font-semibold text-gray-800 dark:text-white">{company?.name || 'Empresa Desconhecida'}</span>
+            <span className="text-lg font-semibold text-gray-800 dark:text-white">{route.company_name || 'Empresa Desconhecida'}</span>
           </div>
           {/* Status badge removed */}
         </div>
@@ -162,28 +165,58 @@ export default function ViagensPage() {
             total_passengers,
             selected_seats,
             created_at,
-            route_id,
-            bus_routes (
-              origin,
-              destination,
-              departure_time,
-              arrival_time,
-              duration,
-              bus_companies (
-                name,
-                logo_url
-              )
-            )
+            route_id
           `)
           .eq('profile_id', session.user.id)
           .eq('booking_status', 'confirmed') // Only confirmed bookings
           .gte('booking_date', todayDate) // Only today or future dates
-          .order('booking_date', { ascending: true }) // Order by travel date (ascending)
-          .order('departure_time', { referencedTable: 'bus_routes', ascending: true }); // Then by departure time
+          .order('booking_date', { ascending: true }); // Order by travel date (ascending)
+          // Removed .order('departure_time', { referencedTable: 'bus_routes', ascending: true }) as it's not needed here
 
         if (bookingError) throw bookingError;
 
-        setAllBookings(bookingData || []);
+        const fetchedBookings = bookingData || [];
+
+        // Collect all unique route_ids
+        const routeIds = [...new Set(fetchedBookings.map(b => b.route_id).filter(Boolean))];
+
+        let routesData = [];
+        if (routeIds.length > 0) {
+          const { data: fetchedRoutes, error: routesError } = await supabase
+            .from('available_routes')
+            .select('id, origin, destination, departure_time, arrival_time, duration, company_name, company_logo, type')
+            .in('id', routeIds);
+
+          if (routesError) {
+            console.error('Error fetching available routes:', routesError);
+            // Continue without route data if there's an error, or throw
+          } else {
+            routesData = fetchedRoutes || [];
+          }
+        }
+
+        // Map route data back to bookings
+        const bookingsWithRoutes = fetchedBookings.map(booking => {
+          const route = routesData.find(r => r.id === booking.route_id);
+          return {
+            ...booking,
+            available_routes: route // Attach the route details
+          };
+        });
+
+        // Filter and sort active bookings based on combined date and time
+        const now = new Date();
+        const activeBookingsFiltered = bookingsWithRoutes.filter(b => {
+          if (b.booking_status !== 'confirmed' || !b.available_routes || !b.available_routes.departure_time) return false;
+          const combinedDateTime = getCombinedDateTime(b.booking_date, b.available_routes.departure_time);
+          return combinedDateTime && isAfter(combinedDateTime, now);
+        }).sort((a, b) => {
+          const dateTimeA = getCombinedDateTime(a.booking_date, a.available_routes.departure_time);
+          const dateTimeB = getCombinedDateTime(b.booking_date, b.available_routes.departure_time);
+          return dateTimeA - dateTimeB; // Sort by date and time
+        });
+
+        setAllBookings(activeBookingsFiltered); // Set the filtered and sorted list
 
       } catch (err) {
         console.error('Error fetching bookings:', err);
@@ -196,10 +229,9 @@ export default function ViagensPage() {
     fetchUserData();
   }, [supabase, router]);
 
-  // No further filtering needed here, as the Supabase query already gets confirmed tickets for today/future.
-  // This list now matches the 'Activo' tab from meus-bilhetes.
+  // The activeBookings memoization is now simpler as filtering/sorting is done in useEffect
   const activeBookings = useMemo(() => {
-    return allBookings; // Simply return all fetched bookings
+    return allBookings;
   }, [allBookings]);
 
 

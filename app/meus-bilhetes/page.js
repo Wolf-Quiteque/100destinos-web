@@ -5,13 +5,13 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Loader2, Ticket, MapPin, Clock, Calendar as CalendarIcon, AlertCircle, Bus } from 'lucide-react'; // Removed Trash2 icon
-import { format, isToday, isFuture, isPast, parseISO } from 'date-fns'; // Removed unused 'parse'
-import { useAuth } from '@/context/AuthContext'; // Import useAuth
+import { Loader2, Ticket, MapPin, Clock, Calendar as CalendarIcon, AlertCircle,  Bus, Plane } from 'lucide-react';
+import { format, isToday, isFuture, isPast, parseISO } from 'date-fns';
+import { useAuth } from '@/context/AuthContext';
 
-// Helper function (remains the same)
+// Helper function to combine date and time
+// Returns a Date object or null
 const getCombinedDateTime = (bookingDateStr, timeStr) => {
-  // ... (implementation is unchanged)
   if (!bookingDateStr || !timeStr) return null;
   const timeParts = timeStr.split(':');
   if (timeParts.length < 2) return null;
@@ -25,12 +25,10 @@ const getCombinedDateTime = (bookingDateStr, timeStr) => {
   }
 };
 
-// BookingCard component (remains mostly the same, delete logic already removed)
 const BookingCard = ({ booking }) => {
   const router = useRouter();
-  const route = booking.bus_routes;
-  const company = route?.bus_companies;
-
+  const route = booking.available_routes;
+  
   if (!route) {
     return (
       <div className="bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg relative" role="alert">
@@ -67,12 +65,16 @@ const BookingCard = ({ booking }) => {
         {/* Card content remains the same */}
         <div className="flex justify-between items-start mb-3">
           <div className="flex items-center space-x-2">
-            {company?.logo_url ? (
-              <img src={company.logo_url} alt={company.name || 'Logo'} className="h-6 w-auto" />
+            {route.company_logo ? (
+              <img src={route.company_logo} alt={route.company_name || 'Logo'} className="h-6 w-auto" />
             ) : (
-              <Bus className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+              route.type === 'bus' ? (
+                <Bus className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+              ) : (
+                <Plane className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+              )
             )}
-            <span className="text-lg font-semibold text-gray-800 dark:text-white">{company?.name || 'Empresa Desconhecida'}</span>
+            <span className="text-lg font-semibold text-gray-800 dark:text-white">{route.company_name || 'Empresa Desconhecida'}</span>
           </div>
           {getStatusBadge(booking.booking_status)}
         </div>
@@ -196,26 +198,44 @@ export default function MeusBilhetesPage() {
             total_passengers,
             selected_seats,
             created_at,
-            route_id,
-            bus_routes (
-              origin,
-              destination,
-              departure_time,
-              arrival_time,
-              duration,
-              bus_companies (
-                name,
-                logo_url
-              )
-            )
+            route_id
           `)
           .eq('profile_id', session.user.id) // Use user ID from session
-          .order('booking_date', { ascending: false });
+          .order('created_at', { ascending: false }); // Order by creation date for general display
 
         if (bookingError) throw bookingError;
 
-        setBookings(bookingData || []);
-        console.log("Fetched Bookings:", bookingData?.length);
+        const fetchedBookings = bookingData || [];
+        
+        // Collect all unique route_ids
+        const routeIds = [...new Set(fetchedBookings.map(b => b.route_id).filter(Boolean))];
+
+        let routesData = [];
+        if (routeIds.length > 0) {
+          const { data: fetchedRoutes, error: routesError } = await supabase
+            .from('available_routes')
+            .select('id, origin, destination, departure_time, arrival_time, duration, company_name, company_logo, type')
+            .in('id', routeIds);
+
+          if (routesError) {
+            console.error('Error fetching available routes:', routesError);
+            // Continue without route data if there's an error, or throw
+          } else {
+            routesData = fetchedRoutes || [];
+          }
+        }
+
+        // Map route data back to bookings
+        const bookingsWithRoutes = fetchedBookings.map(booking => {
+          const route = routesData.find(r => r.id === booking.route_id);
+          return {
+            ...booking,
+            available_routes: route // Attach the route details
+          };
+        });
+
+        setBookings(bookingsWithRoutes);
+        console.log("Fetched Bookings:", bookingsWithRoutes?.length);
 
       } catch (err) {
         console.error('Error fetching bookings:', err);
@@ -232,27 +252,51 @@ export default function MeusBilhetesPage() {
 
   // filteredBookings logic remains the same
   const filteredBookings = useMemo(() => {
+    const now = new Date(); // Get current date and time for comparison
+
     const activo = bookings.filter(b => {
         if (b.booking_status !== 'confirmed') return false;
+        // Ensure route data is available before checking times
+        if (!b.available_routes || !b.available_routes.departure_time) return false; 
+
         try {
-            const bookingDateOnly = parseISO(b.booking_date);
-            return isToday(bookingDateOnly) || isFuture(bookingDateOnly);
+            const combinedDateTime = getCombinedDateTime(b.booking_date, b.available_routes.departure_time);
+            
+            // Check if the combined date/time is in the future
+            return combinedDateTime && isFuture(combinedDateTime);
         } catch (e) {
-            console.error("Error parsing booking_date for activo filter:", e, b.booking_date);
+            console.error("Error parsing booking_date or departure_time for activo filter:", e, b.booking_date, b.available_routes.departure_time);
             return false;
         }
+    }).sort((a, b) => {
+        // Sort active bookings by departure time
+        const dateTimeA = getCombinedDateTime(a.booking_date, a.available_routes.departure_time);
+        const dateTimeB = getCombinedDateTime(b.booking_date, b.available_routes.departure_time);
+        return dateTimeA - dateTimeB;
     });
 
     const pendente = bookings.filter(b => b.booking_status === 'pending');
 
     const historico = bookings.filter(b => {
+        if (b.booking_status === 'pending') return false; // Pending bookings are not historical
+
+        // If not confirmed, or if confirmed but route data is missing, consider it historical
+        if (b.booking_status !== 'confirmed' || !b.available_routes || !b.available_routes.departure_time) return true; 
+
         try {
-            const bookingDateOnly = parseISO(b.booking_date);
-            return isPast(bookingDateOnly);
+            const combinedDateTime = getCombinedDateTime(b.booking_date, b.available_routes.departure_time);
+
+            // If confirmed, check if it's in the past
+            return combinedDateTime && isPast(combinedDateTime);
         } catch (e) {
-            console.error("Error parsing booking_date for historico filter:", e, b.booking_date);
-            return false;
+            console.error("Error parsing booking_date or departure_time for historico filter:", e, b.booking_date, b.available_routes.departure_time);
+            return true; // Default to historical if parsing fails
         }
+    }).sort((a, b) => {
+        // Sort historical bookings by departure time (descending)
+        const dateTimeA = getCombinedDateTime(a.booking_date, a.available_routes.departure_time);
+        const dateTimeB = getCombinedDateTime(b.booking_date, b.available_routes.departure_time);
+        return dateTimeB - dateTimeA;
     });
 
     return { activo, pendente, historico };
@@ -323,3 +367,4 @@ export default function MeusBilhetesPage() {
     </div>
   );
 }
+
