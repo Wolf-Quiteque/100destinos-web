@@ -13,6 +13,21 @@ export default function RentACar() {
     const [profile, setProfile] = useState(null);
     const supabase = createClientComponentClient();
 
+    const carData = [
+        {"model": "HYUNDAI I10", "price": "50.000 kz", "info": "Preço por Dia",img:"/rent-a-car/hyundai-10.png"},
+        {"model": "KIA MORNING", "price": "50.000 kz", "info": "Preço por Dia",img:"/rent-a-car/KIA_MORNING.webp"},
+        {"model": "HYUNDAI I20", "price": "55.000 kz", "info": "Preço por Dia",img:"/rent-a-car/HYUNDAI-I20.png"},
+        {"model": "ELANTRA", "price": "70.000 kz", "info": "Preço por Dia",img:"/rent-a-car/ELANTRA.webp"},
+        {"model": "KIA SPORTAGE", "price": "90.000 kz", "info": "Preço por Dia",img:"/rent-a-car/KIA-SPORTAGE.webp"},
+        {"model": "HYUNDAI IX35 / TUCSON / SANTA FÉ", "price": "100.000 kz", "info": "Preço por Dia",img:"/rent-a-car/HYUNDAI-IX35.webp"},
+        {"model": "JETOUR", "price": "150.000 kz", "info": "Preço por Dia",img:"/rent-a-car/JETOUR.webp"},
+        {"model": "HYUNDAI H-1", "price": "250.000 kz", "info": "Preço por Dia",img:"/rent-a-car/HYUNDAI H-1.webp"},
+        {"model": "KIA K5 / KIA K7", "price": "200.000 kz", "info": "Preço por Dia",img:"/rent-a-car/KIA-K5.webp"},
+        {"model": "HIACE", "price": "250.000 kz", "info": "Preço por Dia",img:"/rent-a-car/HIACE.webp"},
+        {"model": "FORTUNER", "price": "250.000 kz", "info": "Preço por Dia",img:"/rent-a-car/FORTUNER.webp"},
+        {"model": "HILUX", "price": "250.000 kz", "info": "Preço por Dia",img:"/rent-a-car/hyundai-10.png"}
+    ];
+
     useEffect(() => {
         const fetchProfile = async () => {
             if (authUser) {
@@ -189,191 +204,34 @@ export default function RentACar() {
                 </div>
 
                 <div className="car-list">
-                    <div className="car-card">
-                        <div className="car-image" style={{backgroundImage: "url('https://picsum.photos/id/111/800/600')"}}>
-                            <div className="car-badge">Popular</div>
-                        </div>
-                        <div className="car-info">
-                            <div className="car-header">
-                                <div className="car-name">Volkswagen Polo</div>
-                                <div className="car-price">18,900 AOA<span>/dia</span></div>
+                    {carData.map((car, index) => (
+                        <div className="car-card" key={index}>
+                            <div
+                                className="car-image"
+                                style={{
+                                    backgroundImage: `url('${car.img}')`,
+                                }}
+                            >
+                                {/* You can add a badge here if needed, e.g., based on car data */}
+                                {/* <div className="car-badge">Popular</div> */}
                             </div>
-                            <div className="car-details">
-                                <div className="car-detail">
-                                    <i className="fas fa-gas-pump"></i>
-                                    <span>Flex</span>
+                            <div className="car-info">
+                                <div className="car-header">
+                                    <div className="car-name">{car.model}</div>
+                                    <div className="car-price">
+                                        {car.price}
+                                        <span>/{car.info.toLowerCase().replace('preço por ', '')}</span>
+                                    </div>
                                 </div>
-                                <div className="car-detail">
-                                    <i className="fas fa-user-friends"></i>
-                                    <span>5 pessoas</span>
+                                <div className="car-details">
+                                    <div className="car-detail">
+                                        <span>{car.info}</span>
+                                    </div>
                                 </div>
-                                <div className="car-detail">
-                                    <i className="fas fa-suitcase"></i>
-                                    <span>2 malas</span>
-                                </div>
-                                <div className="car-detail">
-                                    <i className="fas fa-tachometer-alt"></i>
-                                    <span>Automático</span>
-                                </div>
+                                <button className="rent-btn">Alugar Agora</button>
                             </div>
-                            <button className="rent-btn">Alugar Agora</button>
                         </div>
-                    </div>
-
-                    <div className="car-card">
-                        <div className="car-image" style={{backgroundImage: "url('https://picsum.photos/id/133/800/600')"}}>
-                            <div className="car-badge">Economize 15%</div>
-                        </div>
-                        <div className="car-info">
-                            <div className="car-header">
-                                <div className="car-name">Fiat Argo</div>
-                                <div className="car-price">15,900 AOA<span>/dia</span></div>
-                            </div>
-                            <div className="car-details">
-                                <div className="car-detail">
-                                    <i className="fas fa-gas-pump"></i>
-                                    <span>Flex</span>
-                                </div>
-                                <div className="car-detail">
-                                    <i className="fas fa-user-friends"></i>
-                                    <span>5 pessoas</span>
-                                </div>
-                                <div className="car-detail">
-                                    <i className="fas fa-suitcase"></i>
-                                    <span>2 malas</span>
-                                </div>
-                                <div className="car-detail">
-                                    <i className="fas fa-tachometer-alt"></i>
-                                    <span>Manual</span>
-                                </div>
-                            </div>
-                            <button className="rent-btn">Alugar Agora</button>
-                        </div>
-                    </div>
-
-                    <div className="car-card">
-                        <div className="car-image" style={{backgroundImage: "url('https://picsum.photos/id/146/800/600')"}}>
-                            <div className="car-badge">Mais alugado</div>
-                        </div>
-                        <div className="car-info">
-                            <div className="car-header">
-                                <div className="car-name">Jeep Renegade</div>
-                                <div className="car-price">28,900 AOA<span>/dia</span></div>
-                            </div>
-                            <div className="car-details">
-                                <div className="car-detail">
-                                    <i className="fas fa-gas-pump"></i>
-                                    <span>Flex</span>
-                                </div>
-                                <div className="car-detail">
-                                    <i className="fas fa-user-friends"></i>
-                                    <span>5 pessoas</span>
-                                </div>
-                                <div className="car-detail">
-                                    <i className="fas fa-suitcase"></i>
-                                    <span>4 malas</span>
-                                </div>
-                                <div className="car-detail">
-                                    <i className="fas fa-tachometer-alt"></i>
-                                    <span>Automático</span>
-                                </div>
-                            </div>
-                            <button className="rent-btn">Alugar Agora</button>
-                        </div>
-                    </div>
-
-                    <div className="car-card">
-                        <div className="car-image" style={{backgroundImage: "url('https://picsum.photos/id/162/800/600')"}}>
-                            <div className="car-badge">Novo</div>
-                        </div>
-                        <div className="car-info">
-                            <div className="car-header">
-                                <div className="car-name">BMW 320i</div>
-                                <div className="car-price">49,900 AOA<span>/dia</span></div>
-                            </div>
-                            <div className="car-details">
-                                <div className="car-detail">
-                                    <i className="fas fa-gas-pump"></i>
-                                    <span>Gasolina</span>
-                                </div>
-                                <div className="car-detail">
-                                    <i className="fas fa-user-friends"></i>
-                                    <span>4 pessoas</span>
-                                </div>
-                                <div className="car-detail">
-                                    <i className="fas fa-suitcase"></i>
-                                    <span>3 malas</span>
-                                </div>
-                                <div className="car-detail">
-                                    <i className="fas fa-tachometer-alt"></i>
-                                    <span>Automático</span>
-                                </div>
-                            </div>
-                            <button className="rent-btn">Alugar Agora</button>
-                        </div>
-                    </div>
-
-                    <div className="car-card">
-                        <div className="car-image" style={{backgroundImage: "url('https://picsum.photos/id/183/800/600')"}}>
-                            <div className="car-badge">Promoção</div>
-                        </div>
-                        <div className="car-info">
-                            <div className="car-header">
-                                <div className="car-name">Chevrolet Onix</div>
-                                <div className="car-price">17,900 AOA<span>/dia</span></div>
-                            </div>
-                            <div className="car-details">
-                                <div className="car-detail">
-                                    <i className="fas fa-gas-pump"></i>
-                                    <span>Flex</span>
-                                </div>
-                                <div className="car-detail">
-                                    <i className="fas fa-user-friends"></i>
-                                    <span>5 pessoas</span>
-                                </div>
-                                <div className="car-detail">
-                                    <i className="fas fa-suitcase"></i>
-                                    <span>2 malas</span>
-                                </div>
-                                <div className="car-detail">
-                                    <i className="fas fa-tachometer-alt"></i>
-                                    <span>Automático</span>
-                                </div>
-                            </div>
-                            <button className="rent-btn">Alugar Agora</button>
-                        </div>
-                    </div>
-
-                    <div className="car-card">
-                        <div className="car-image" style={{backgroundImage: "url('https://picsum.photos/id/193/800/600')"}}>
-                            <div className="car-badge">Econômico</div>
-                        </div>
-                        <div className="car-info">
-                            <div className="car-header">
-                                <div className="car-name">Hyundai HB20</div>
-                                <div className="car-price">16,900 AOA<span>/dia</span></div>
-                            </div>
-                            <div className="car-details">
-                                <div className="car-detail">
-                                    <i className="fas fa-gas-pump"></i>
-                                    <span>Flex</span>
-                                </div>
-                                <div className="car-detail">
-                                    <i className="fas fa-user-friends"></i>
-                                    <span>5 pessoas</span>
-                                </div>
-                                <div className="car-detail">
-                                    <i className="fas fa-suitcase"></i>
-                                    <span>2 malas</span>
-                                </div>
-                                <div className="car-detail">
-                                    <i className="fas fa-tachometer-alt"></i>
-                                    <span>Manual</span>
-                                </div>
-                            </div>
-                            <button className="rent-btn">Alugar Agora</button>
-                        </div>
-                    </div>
+                    ))}
                 </div>
             </div>
         </div>
