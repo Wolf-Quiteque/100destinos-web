@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { User, Calendar as CalendarIcon, Loader2 } from 'lucide-react';
+import { User, Calendar as CalendarIcon, Loader2, ArrowLeft } from 'lucide-react'; // Added ArrowLeft
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useAuth } from '../../context/AuthContext';
-import { format, addDays } from 'date-fns';
+import { format, isBefore, startOfToday } from 'date-fns'; // Changed addDays to isBefore, startOfToday
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -31,7 +31,7 @@ export default function RentACar() {
     const [totalRentalPrice, setTotalRentalPrice] = useState(0);
     const [processingPayment, setProcessingPayment] = useState(false);
     const [filteredCarData, setFilteredCarData] = useState([]); // State for filtered cars
-    const [hasSearched, setHasSearched] = useState(false); // To track if a search has been performed
+    const [showSearchResults, setShowSearchResults] = useState(false); // New state to control view
 
     const carData = [
         {"model": "HYUNDAI I10", "price": "50.000 kz", "info": "Preço por Dia", img:"/rent-a-car/hyundai-10.png"},
@@ -107,11 +107,13 @@ export default function RentACar() {
         e.preventDefault(); // Prevent form submission
         // Simulate a search: for now, just display all cars and show a toast
         setFilteredCarData(carData);
-        setHasSearched(true);
-        toast({
-            title: "Busca Realizada",
-            description: "Todos os carros disponíveis foram exibidos.",
-        });
+        setShowSearchResults(true); // Show only search results
+      
+    };
+
+    const handleBackToSearch = () => {
+        setShowSearchResults(false); // Go back to initial view
+        setFilteredCarData(carData); // Reset filtered data if needed
     };
 
     const handlePaymentSuccess = (rentedCarObject) => {
@@ -134,242 +136,254 @@ export default function RentACar() {
 
     return (
         <div className="main-container">
-            <div className="hero-section rent-a-car-hero">
-                <div className="content-wrapper">
-                    <header className="header">
-                        <div className="header-top">
-                        <Image
-                            src="/logo/logoff.webp"
-                            alt="Logo"
-                            width={150}
-                            height={90}
-                            className="logo"
-                        />
-                            <div className="flex items-center space-x-4">
-                                <Button
-                                    variant="ghost"
-                                    onClick={() => router.push('/meus-alugueis')}
-                                    className="text-white hover:text-orange-500"
+            {!showSearchResults ? (
+                <div className="hero-section rent-a-car-hero">
+                    <div className="content-wrapper">
+                        <header className="header">
+                            <div className="header-top">
+                            <Image
+                                src="/logo/logoff.webp"
+                                alt="Logo"
+                                width={150}
+                                height={90}
+                                className="logo"
+                            />
+                                <div className="flex items-center space-x-4">
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => router.push('/meus-alugueis')}
+                                        className="text-white hover:text-orange-500"
+                                    >
+                                        Meus Aluguéis
+                                    </Button>
+                                    <div
+                                    className="avatar"
+                                    onClick={() => !session && router.push('/login')}
+                                    style={{ cursor: session ? 'default' : 'pointer' }}
                                 >
-                                    Meus Aluguéis
-                                </Button>
-                                <div
-                                className="avatar"
-                                onClick={() => !session && router.push('/login')}
-                                style={{ cursor: session ? 'default' : 'pointer' }}
-                            >
-                                {session && profile?.nome ? (
-                                    (() => {
-                                        const nameParts = profile.nome.split(' ').filter(part => part.length > 0);
-                                        if (nameParts.length >= 2) {
-                                            return `${nameParts[0].charAt(0).toUpperCase()}${nameParts[nameParts.length - 1].charAt(0).toUpperCase()}`;
-                                        } else if (nameParts.length === 1) {
-                                            return nameParts[0].charAt(0).toUpperCase();
-                                        }
-                                        return 'JS';
-                                    })()
-                                ) : (
-                                    <User size={24} />
-                                )}
-                            </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h1 className="page-title">Aluguel de Carros</h1>
-                            <p className="page-subtitle">Encontre o veículo perfeito para sua viagem entre mais de 1,000 opções disponíveis em todo o Brasil</p>
-                        </div>
-                    </header>
-
-                    <div className="search-card">
-                        <div className="search-tabs">
-                            <div className="tab active">Retirada</div>
-                            <div className="tab">Devolução</div>
-                        </div>
-
-                        <form className="search-form" onSubmit={handleSearchCars}>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <i className="fas fa-map-marker-alt"></i>
-                                    <input type="text" className="form-control" placeholder="Local de retirada" defaultValue="Aeroporto de Guarulhos (GRU)" />
+                                    {session && profile?.nome ? (
+                                        (() => {
+                                            const nameParts = profile.nome.split(' ').filter(part => part.length > 0);
+                                            if (nameParts.length >= 2) {
+                                                return `${nameParts[0].charAt(0).toUpperCase()}${nameParts[nameParts.length - 1].charAt(0).toUpperCase()}`;
+                                            } else if (nameParts.length === 1) {
+                                                return nameParts[0].charAt(0).toUpperCase();
+                                            }
+                                            return 'JS';
+                                        })()
+                                    ) : (
+                                        <User size={24} />
+                                    )}
                                 </div>
-
-                                <div className="form-group">
-                                    <i className="fas fa-calendar-alt"></i>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant={"outline"}
-                                                className={cn(
-                                                    "w-full justify-start text-left font-normal",
-                                                    !rentalStartDate && "text-muted-foreground",
-                                                    rentalStartDate && "text-black" // Ensure text is black when date is selected
-                                                )}
-                                            >
-                                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                                {rentalStartDate ? format(rentalStartDate, "PPP") : <span>Data de retirada</span>}
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0">
-                                            <Calendar
-                                                mode="single"
-                                                selected={rentalStartDate}
-                                                onSelect={setRentalStartDate}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
                                 </div>
                             </div>
 
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <i className="fas fa-map-marker-alt"></i>
-                                    <input type="text" className="form-control" placeholder="Local de devolução" defaultValue="Mesmo local" />
+                            <div>
+                                <h1 className="page-title">Aluguel de Carros</h1>
+                                <p className="page-subtitle">Encontre o veículo perfeito para sua viagem entre mais de 1,000 opções disponíveis em todo o Brasil</p>
+                            </div>
+                        </header>
+
+                        <div className="search-card">
+                            <div className="search-tabs">
+                                <div className="tab active">Retirada</div>
+                                <div className="tab">Devolução</div>
+                            </div>
+
+                            <form className="search-form" onSubmit={handleSearchCars}>
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <i className="fas fa-map-marker-alt"></i>
+                                        <input type="text" className="form-control" placeholder="Local de retirada" defaultValue="Aeroporto de Guarulhos (GRU)" />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <i className="fas fa-calendar-alt"></i>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant={"outline"}
+                                                    className={cn(
+                                                        "w-full justify-start text-left font-normal",
+                                                        !rentalStartDate && "text-muted-foreground",
+                                                        rentalStartDate && "text-black" // Ensure text is black when date is selected
+                                                    )}
+                                                >
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {rentalStartDate ? format(rentalStartDate, "PPP") : <span>Data de retirada</span>}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={rentalStartDate}
+                                                    onSelect={setRentalStartDate}
+                                                    initialFocus
+                                                    disabled={(date) => isBefore(date, startOfToday())} // Disable dates before today
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
                                 </div>
 
-                                <div className="form-group">
-                                    <i className="fas fa-calendar-alt"></i>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant={"outline"}
-                                                className={cn(
-                                                    "w-full justify-start text-left font-normal",
-                                                    !rentalEndDate && "text-muted-foreground",
-                                                    rentalEndDate && "text-black" // Ensure text is black when date is selected
-                                                )}
-                                            >
-                                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                                {rentalEndDate ? format(rentalEndDate, "PPP") : <span>Data de devolução</span>}
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0">
-                                            <Calendar
-                                                mode="single"
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <i className="fas fa-map-marker-alt"></i>
+                                        <input type="text" className="form-control" placeholder="Local de devolução" defaultValue="Mesmo local" />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <i className="fas fa-calendar-alt"></i>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant={"outline"}
+                                                    className={cn(
+                                                        "w-full justify-start text-left font-normal",
+                                                        !rentalEndDate && "text-muted-foreground",
+                                                        rentalEndDate && "text-black" // Ensure text is black when date is selected
+                                                    )}
+                                                >
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {rentalEndDate ? format(rentalEndDate, "PPP") : <span>Data de devolução</span>}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0">
+                                                <Calendar
+                                                    mode="single"
                                                 selected={rentalEndDate}
                                                 onSelect={setRentalEndDate}
                                                 initialFocus
-                                                disabled={(date) => date < rentalStartDate || date < new Date("1900-01-01")}
+                                                disabled={(date) => !rentalStartDate || isBefore(date, rentalStartDate)} // Disable dates before start date
                                             />
                                         </PopoverContent>
                                     </Popover>
                                 </div>
                             </div>
 
-                            <button type="submit" className="search-btn">
-                                <i className="fas fa-search"></i> Buscar Carros
-                            </button>
-                        </form>
+                                <button type="submit" className="search-btn">
+                                    <i className="fas fa-search"></i> Buscar Carros
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <div className="content-wrapper page-content">
-                <div className="ad-container">
-                    <h2>Anúncio</h2>
-                    <p>Espaço para publicidade</p>
-                </div>
-
-                <div className="section-title">
-                    Categorias
-                    <a href="#" className="see-all">Ver todas</a>
-                </div>
-
-                <div className="categories">
-                    <div className="category-card active">
-                        <div className="category-icon">
-                            <i className="fas fa-car"></i>
-                        </div>
-                        <div className="category-title">Todos</div>
+            ) : (
+                <div className="content-wrapper page-content">
+                    <button
+                        onClick={handleBackToSearch}
+                        className="absolute top-4 left-4 md:left-8 z-10
+                        text-white bg-gray-800/50 hover:bg-gray-800/70
+                        rounded-full p-3 transition-all duration-300
+                        hover:text-orange-500 hover:scale-110"
+                    >
+                        <ArrowLeft size={24} />
+                    </button>
+                    <div className="ad-container">
+                        <h2>Anúncio</h2>
+                        <p>Espaço para publicidade</p>
                     </div>
 
-                    <div className="category-card">
-                        <div className="category-icon">
-                            <i className="fas fa-car-side"></i>
-                        </div>
-                        <div className="category-title">Econômico</div>
+                    <div className="section-title">
+                        Categorias
+                        <a href="#" className="see-all">Ver todas</a>
                     </div>
 
-                    <div className="category-card">
-                        <div className="category-icon">
-                            <i className="fas fa-car-alt"></i>
-                        </div>
-                        <div className="category-title">Intermediário</div>
-                    </div>
-
-                    <div className="category-card">
-                        <div className="category-icon">
-                            <i className="fas fa-caravan"></i>
-                        </div>
-                        <div className="category-title">SUV</div>
-                    </div>
-
-                    <div className="category-card">
-                        <div className="category-icon">
-                            <i className="fas fa-truck-pickup"></i>
-                        </div>
-                        <div className="category-title">Pickup</div>
-                    </div>
-
-                    <div className="category-card">
-                        <div className="category-icon">
-                            <i className="fas fa-car"></i>
-                        </div>
-                        <div className="category-title">Luxo</div>
-                    </div>
-
-                    <div className="category-card">
-                        <div className="category-icon">
-                            <i className="fas fa-shuttle-van"></i>
-                        </div>
-                        <div className="category-title">Van</div>
-                    </div>
-
-                    <div className="category-card">
-                        <div className="category-icon">
-                            <i className="fas fa-bolt"></i>
-                        </div>
-                        <div className="category-title">Elétrico</div>
-                    </div>
-                </div>
-
-                <div className="section-title">
-                    Veículos Disponíveis
-                    <a href="#" className="see-all">Ver todos</a>
-                </div>
-
-                <div className="car-list">
-                    {filteredCarData.map((car, index) => (
-                        <div className="car-card" key={index}>
-                            <div
-                                className="car-image"
-                                style={{
-                                    backgroundImage: `url('${car.img}')`,
-                                }}
-                            >
-                                {/* You can add a badge here if needed, e.g., based on car data */}
-                                {/* <div className="car-badge">Popular</div> */}
+                    <div className="categories">
+                        <div className="category-card active">
+                            <div className="category-icon">
+                                <i className="fas fa-car"></i>
                             </div>
-                            <div className="car-info">
-                                <div className="car-header">
-                                    <div className="car-name">{car.model}</div>
-                                    <div className="car-price">
-                                        {car.price}
-                                        <span>/{car.info.toLowerCase().replace('preço por ', '')}</span>
-                                    </div>
-                                </div>
-                                <div className="car-details">
-                                    <div className="car-detail">
-                                        <span>{car.info}</span>
-                                    </div>
-                                </div>
-                                <button className="rent-btn" onClick={() => handleRentNowClick(car)}>Alugar Agora</button>
-                            </div>
+                            <div className="category-title">Todos</div>
                         </div>
-                    ))}
+
+                        <div className="category-card">
+                            <div className="category-icon">
+                                <i className="fas fa-car-side"></i>
+                            </div>
+                            <div className="category-title">Econômico</div>
+                        </div>
+
+                        <div className="category-card">
+                            <div className="category-icon">
+                                <i className="fas fa-car-alt"></i>
+                            </div>
+                            <div className="category-title">Intermediário</div>
+                        </div>
+
+                        <div className="category-card">
+                            <div className="category-icon">
+                                <i className="fas fa-caravan"></i>
+                            </div>
+                            <div className="category-title">SUV</div>
+                        </div>
+
+                        <div className="category-card">
+                            <div className="category-icon">
+                                <i className="fas fa-truck-pickup"></i>
+                            </div>
+                            <div className="category-title">Pickup</div>
+                        </div>
+
+                        <div className="category-card">
+                            <div className="category-icon">
+                                <i className="fas fa-car"></i>
+                            </div>
+                            <div className="category-title">Luxo</div>
+                        </div>
+
+                        <div className="category-card">
+                            <div className="category-icon">
+                                <i className="fas fa-shuttle-van"></i>
+                            </div>
+                            <div className="category-title">Van</div>
+                        </div>
+
+                        <div className="category-card">
+                            <div className="category-icon">
+                                <i className="fas fa-bolt"></i>
+                            </div>
+                            <div className="category-title">Elétrico</div>
+                        </div>
+                    </div>
+
+                    <div className="section-title">
+                        Veículos Disponíveis
+                        <a href="#" className="see-all">Ver todos</a>
+                    </div>
+
+                    <div className="car-list">
+                        {filteredCarData.map((car, index) => (
+                            <div className="car-card" key={index}>
+                                <div
+                                    className="car-image"
+                                    style={{
+                                        backgroundImage: `url('${car.img}')`,
+                                    }}
+                                >
+                                    {/* You can add a badge here if needed, e.g., based on car data */}
+                                    {/* <div className="car-badge">Popular</div> */}
+                                </div>
+                                <div className="car-info">
+                                    <div className="car-header">
+                                        <div className="car-name">{car.model}</div>
+                                        <div className="car-price">
+                                            {car.price}
+                                            <span>/{car.info.toLowerCase().replace('preço por ', '')}</span>
+                                        </div>
+                                    </div>
+                                    <div className="car-details">
+                                        <div className="car-detail">
+                                            <span>{car.info}</span>
+                                        </div>
+                                    </div>
+                                    <button className="rent-btn" onClick={() => handleRentNowClick(car)}>Alugar Agora</button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Payment Confirmation Modal */}
             <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>

@@ -3,7 +3,7 @@ import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, Upload, FileText, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Loader2, Upload, FileText, CheckCircle, AlertCircle, RefreshCw, CreditCard, Copy } from 'lucide-react'; // Added CreditCard, Copy
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -14,6 +14,16 @@ export default function RentPaymentModal({ selectedCar, rentalStartDate, rentalE
     const [uploadedFile, setUploadedFile] = useState(null);
     const [processingPayment, setProcessingPayment] = useState(false);
     const [comprovativoErro, setComprovativoErro] = useState(false);
+
+    const IBAN = '0055.0000.1009.6480.1012.9'; // IBAN constant
+
+    const copyIBAN = () => {
+        navigator.clipboard.writeText(IBAN);
+        toast({
+            title: "IBAN Copiado",
+            description: "O IBAN foi copiado para a área de transferência.",
+        });
+    };
 
     const handleFileUpload = async (e) => {
         const file = e.target.files[0];
@@ -109,6 +119,41 @@ export default function RentPaymentModal({ selectedCar, rentalStartDate, rentalE
                         <p className="text-lg font-bold text-orange-500">
                             {totalRentalPrice.toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' })}
                         </p>
+                    </div>
+
+                    {/* Payment Details Section (IBAN) */}
+                    <div className="relative group">
+                        <div className="absolute -inset-0.5 bg-orange-500 rounded-2xl opacity-50 group-hover:opacity-75 transition duration-300 blur-sm"></div>
+                        <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-orange-500 transition-all duration-300">
+                            <div className="flex justify-between items-center mb-4">
+                                <div className="flex items-center space-x-2">
+                                    <CreditCard className="text-orange-500" />
+                                    <h2 className="text-xl font-bold text-white">Detalhes de Pagamento</h2>
+                                </div>
+                            </div>
+                            <div className="grid md:grid-cols-2 gap-4 text-white">
+                                <div>
+                                    <p className="text-sm text-gray-400">Total a Pagar</p>
+                                    <strong className="text-2xl text-orange-500">
+                                        {totalRentalPrice.toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' })}
+                                    </strong>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-400">Empresa</p>
+                                    <strong className="text-lg text-white">ZRD3 CONSULTING</strong>
+                                    <p className="text-sm text-gray-400">IBAN</p>
+                                    <div className="flex items-center space-x-2">
+                                        <strong>{IBAN}</strong>
+                                        <button
+                                            onClick={copyIBAN}
+                                            className="text-orange-500 hover:text-orange-400"
+                                        >
+                                            <Copy size={18} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Error Alert */}

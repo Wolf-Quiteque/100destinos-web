@@ -212,8 +212,18 @@ The simulation will be entirely client-side, leveraging `localStorage` for persi
 *   **8.5. Integrate `RentPaymentModal`:**
     *   In `app/rent-a-car/page.js`, replace the inline `Dialog` and its content with the `RentPaymentModal` component, passing the necessary props.
 
+### 9. Display IBAN and Copy Functionality in Payment Modal
+
+**Goal:** Provide users with the company's IBAN and a button to copy it, mirroring the payment details section in `app/pagamentos/page.js`.
+
+*   **9.1. Add IBAN Constant:**
+    *   Define a constant for the IBAN (e.g., `0055.0000.1009.6480.1012.9`) within `components/RentPaymentModal.js`.
+*   **9.2. Implement Copy Functionality:**
+    *   Create a `copyIBAN` function that uses `navigator.clipboard.writeText` to copy the IBAN to the clipboard and displays a success toast.
+*   **9.3. Integrate UI:**
+    *   Add a section in `components/RentPaymentModal.js` to display the company name (e.g., "ZRD3 CONSULTING") and the IBAN, along with a `Copy` icon button (from `lucide-react`) that triggers the `copyIBAN` function. Position this prominently, perhaps above the file upload section.
+
 ---
 
 This updated plan addresses all new requirements, focusing on client-side simulation for efficiency and maintaining modularity.
-Step 8. Replicate Payment Process with PDF Upload Simulation - COMPLETED
-Step 8. Replicate Payment Process with PDF Upload Simulation - COMPLETED
+Step 9. Display IBAN and Copy Functionality in Payment Modal - COMPLETED
