@@ -17,8 +17,8 @@ import RentPaymentModal from '@/components/RentPaymentModal'; // Import the new 
 import './style.css';
 
 export default function RentACar() {
+    const { user: authUser, session } = useAuth();
     const router = useRouter();
-    const { session, user: authUser } = useAuth();
     const [profile, setProfile] = useState(null);
     const supabase = createClientComponentClient();
     const { toast } = useToast();
@@ -91,6 +91,15 @@ export default function RentACar() {
     }, [rentalStartDate, rentalEndDate, selectedCar]);
 
     const handleRentNowClick = (car) => {
+        if (!session) {
+            router.push('/login'); // Redirect to login if not authenticated
+            toast({
+                variant: "destructive",
+                title: "Autenticação Necessária",
+                description: "Por favor, faça login para alugar um carro.",
+            });
+            return;
+        }
         if (!rentalStartDate || !rentalEndDate) {
             toast({
                 variant: "destructive",
@@ -159,23 +168,23 @@ export default function RentACar() {
                                     <div
                                     className="avatar"
                                     onClick={() => !session && router.push('/login')}
-                                    style={{ cursor: session ? 'default' : 'pointer' }}
-                                >
-                                    {session && profile?.nome ? (
-                                        (() => {
-                                            const nameParts = profile.nome.split(' ').filter(part => part.length > 0);
-                                            if (nameParts.length >= 2) {
-                                                return `${nameParts[0].charAt(0).toUpperCase()}${nameParts[nameParts.length - 1].charAt(0).toUpperCase()}`;
-                                            } else if (nameParts.length === 1) {
-                                                return nameParts[0].charAt(0).toUpperCase();
-                                            }
-                                            return 'JS';
-                                        })()
-                                    ) : (
-                                        <User size={24} />
-                                    )}
-                                </div>
-                                </div>
+                            style={{ cursor: session ? 'default' : 'pointer' }}
+                        >
+                            {session && profile?.nome ? (
+                                (() => {
+                                    const nameParts = profile.nome.split(' ').filter(part => part.length > 0);
+                                    if (nameParts.length >= 2) {
+                                        return `${nameParts[0].charAt(0).toUpperCase()}${nameParts[nameParts.length - 1].charAt(0).toUpperCase()}`;
+                                    } else if (nameParts.length === 1) {
+                                        return nameParts[0].charAt(0).toUpperCase();
+                                    }
+                                    return 'JS';
+                                })()
+                            ) : (
+                                <User size={24} />
+                            )}
+                        </div>
+                        </div>
                             </div>
 
                             <div>

@@ -252,8 +252,7 @@ export default function Home() { // Renamed to Home as per user's move
             setToSuggestions([...new Set(validDestinations)]);
         } else if (activeTab === 'airplane' && fromLocation && allPlaneRoutes.length > 0) {
             const validDestinations = allPlaneRoutes.filter(route =>
-                route.origin === fromLocation &&
-                route.destination.toLowerCase().includes(value.toLowerCase())
+                route.origin === value
             ).map(route => route.destination);
             setToSuggestions([...new Set(validDestinations)]);
         }
@@ -284,6 +283,15 @@ export default function Home() { // Renamed to Home as per user's move
 
     const handleSearchSubmit = (event) => {
         event.preventDefault();
+        if (!session) {
+            router.push('/login'); // Redirect to login if not authenticated
+            toast({
+                variant: "destructive",
+                title: "Autenticação Necessária",
+                description: "Por favor, faça login para pesquisar passagens.",
+            });
+            return;
+        }
         const queryParams = new URLSearchParams();
         queryParams.append('departure', fromLocation);
         queryParams.append('destination', toLocation);

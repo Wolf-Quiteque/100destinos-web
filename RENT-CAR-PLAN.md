@@ -231,3 +231,5 @@ Step 10. Integrate Tabs into MeusBilhetesPage - COMPLETED
 Step 10. Integrate Tabs into MeusBilhetesPage - COMPLETED
 Step 10. Integrate Tabs into MeusBilhetesPage - COMPLETED
 Step 11. Apply Minor Edits to MeusServicosPage - COMPLETED
+Step 12. Implement Authentication Checks and Redirects - COMPLETED
+Step 12. Implement Authentication Checks and Redirects - COMPLETED
