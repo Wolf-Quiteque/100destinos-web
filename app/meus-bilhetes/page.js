@@ -5,12 +5,12 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Loader2, Ticket, MapPin, Clock, Calendar as CalendarIcon, AlertCircle,  Bus, Plane } from 'lucide-react';
+import { Loader2, Ticket, MapPin, Clock, Calendar as CalendarIcon, AlertCircle, Bus, Plane, Car, Hotel } from 'lucide-react';
 import { format, isToday, isFuture, isPast, parseISO } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
+import CarrosTab from './CarrosTab';
 
 // Helper function to combine date and time
-// Returns a Date object or null
 const getCombinedDateTime = (bookingDateStr, timeStr) => {
   if (!bookingDateStr || !timeStr) return null;
   const timeParts = timeStr.split(':');
@@ -28,7 +28,7 @@ const getCombinedDateTime = (bookingDateStr, timeStr) => {
 const BookingCard = ({ booking }) => {
   const router = useRouter();
   const route = booking.available_routes;
-  
+
   if (!route) {
     return (
       <div className="bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg relative" role="alert">
@@ -157,13 +157,13 @@ const BookingCard = ({ booking }) => {
   );
 };
 
-export default function MeusBilhetesPage() {
-  const supabase = createClientComponentClient();
-  const router = useRouter();
-  const { session, user, isLoading: isAuthLoading } = useAuth(); // Use AuthContext
-  const [bookings, setBookings] = useState([]);
-  const [error, setError] = useState(null);
-  const [isFetchingBookings, setIsFetchingBookings] = useState(false); // Separate loading state for bookings fetch
+export default function MeusServicosPage() {
+    const supabase = createClientComponentClient();
+    const router = useRouter();
+    const { session, user, isLoading: isAuthLoading } = useAuth(); // Use AuthContext
+    const [bookings, setBookings] = useState([]);
+    const [error, setError] = useState(null);
+    const [isFetchingBookings, setIsFetchingBookings] = useState(false); // Separate loading state for bookings fetch
 
   useEffect(() => {
     // If auth state is still loading, wait
@@ -281,7 +281,7 @@ export default function MeusBilhetesPage() {
         if (b.booking_status === 'pending') return false; // Pending bookings are not historical
 
         // If not confirmed, or if confirmed but route data is missing, consider it historical
-        if (b.booking_status !== 'confirmed' || !b.available_routes || !b.available_routes.departure_time) return true; 
+        if (b.available_routes || !b.available_routes.departure_time) return true; 
 
         try {
             const combinedDateTime = getCombinedDateTime(b.booking_date, b.available_routes.departure_time);
@@ -289,7 +289,7 @@ export default function MeusBilhetesPage() {
             // If confirmed, check if it's in the past
             return combinedDateTime && isPast(combinedDateTime);
         } catch (e) {
-            console.error("Error parsing booking_date or departure_time for historico filter:", e, b.booking_date, b.available_routes.departure_time);
+            console.error("Error parsing booking_date or departure_time for historico filter:", e, b.available_routes.departure_time);
             return true; // Default to historical if parsing fails
         }
     }).sort((a, b) => {
@@ -320,7 +320,7 @@ export default function MeusBilhetesPage() {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 md:p-8 pb-20 md:pb-8">
       <h1 className="text-2xl md:text-3xl font-bold mb-6 text-center text-gray-800 dark:text-orange-400">
-        Meus Bilhetes
+        Meus Serviços
       </h1>
 
       {showLoading ? (
@@ -333,38 +333,63 @@ export default function MeusBilhetesPage() {
            <span>{error}</span>
          </div>
       ) : (
-        // Tabs rendering remains the same
-        <Tabs defaultValue="activo" className="w-full max-w-3xl mx-auto">
+        <Tabs defaultValue="viagens" className="w-full max-w-3xl mx-auto">
           <TabsList className="grid w-full grid-cols-3 bg-gray-200 dark:bg-gray-800 rounded-lg mb-4">
-            <TabsTrigger value="activo" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white dark:data-[state=active]:bg-orange-600">
+            <TabsTrigger value="viagens" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white dark:data-[state=active]:bg-orange-600">
               <div className="flex items-center justify-center space-x-2">
-                <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                </span>
-                <span>Activo ({filteredBookings.activo.length})</span>
+                <Plane className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span>Viagens ({filteredBookings.activo.length})</span>
               </div>
             </TabsTrigger>
-            <TabsTrigger value="pendente" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white dark:data-[state=active]:bg-orange-600">
-              Pendente ({filteredBookings.pendente.length})
+            <TabsTrigger value="hospedagens" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white dark:data-[state=active]:bg-orange-600">
+              <div className="flex items-center justify-center space-x-2">
+                <Hotel className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span>Hospedagens</span>
+              </div>
             </TabsTrigger>
-            <TabsTrigger value="historico" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white dark:data-[state=active]:bg-orange-600">
-              Histórico ({filteredBookings.historico.length})
+            <TabsTrigger value="carros" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white dark:data-[state=active]:bg-orange-600">
+              <div className="flex items-center justify-center space-x-2">
+                <Car className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span>Carros</span>
+              </div>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="activo">
-            {renderBookingList(filteredBookings.activo)}
+          <TabsContent value="viagens">
+            <Tabs defaultValue="activo" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 bg-gray-200 dark:bg-gray-800 rounded-lg mb-4">
+                <TabsTrigger value="activo" className="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-white dark:data-[state=active]:text-black">
+                  Activo ({filteredBookings.activo.length})
+                </TabsTrigger>
+                <TabsTrigger value="pendente" className="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-white dark:data-[state=active]:text-black">
+                  Pendente ({filteredBookings.pendente.length})
+                </TabsTrigger>
+                <TabsTrigger value="historico" className="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-white dark:data-[state=active]:text-black">
+                  Histórico ({filteredBookings.historico.length})
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="activo">
+                {renderBookingList(filteredBookings.activo)}
+              </TabsContent>
+              <TabsContent value="pendente">
+                {renderBookingList(filteredBookings.pendente)}
+              </TabsContent>
+              <TabsContent value="historico">
+                {renderBookingList(filteredBookings.historico)}
+              </TabsContent>
+            </Tabs>
           </TabsContent>
-          <TabsContent value="pendente">
-            {renderBookingList(filteredBookings.pendente)}
+          <TabsContent value="hospedagens">
+            <div className="bg-white rounded-2xl p-6 text-center text-gray-400 border border-gray-200">
+              <p className="text-lg">Hospedagens em breve...</p>
+            </div>
           </TabsContent>
-          <TabsContent value="historico">
-            {renderBookingList(filteredBookings.historico)}
+          <TabsContent value="carros">
+            <CarrosTab />
           </TabsContent>
         </Tabs>
       )}
     </div>
   );
 }
-
