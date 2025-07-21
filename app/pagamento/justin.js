@@ -20,12 +20,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import BusTicketLoader from '../components/BusTicketLoader';
 import { Button } from '@/components/ui/button'; // Import Button component
 
-function PaymentScreenContent({}) {
+function PaymentScreenContent() {
   const supabase = createClientComponentClient();
   const router = useRouter();
   const searchParams = useSearchParams();
   const bookingId = searchParams.get('bookingId');
-  const searchType = searchParams.get('type')
    const { toast } = useToast();
 
    const [bookingDetails, setBookingDetails] = useState(null);
@@ -36,7 +35,7 @@ function PaymentScreenContent({}) {
   const [comprovativoErro, setComprovativoErro] = useState(false); // Keep error state
   const fileInputRef = useRef(null);
 
-  const IBAN = '0005.0000.0822.8915.1011.5';
+  const IBAN = '0055.0000.1009.6480.1012.9';
   const NT = '934937545';
 
 
@@ -123,7 +122,7 @@ function PaymentScreenContent({}) {
         description: "O seu bilhete foi confirmado com sucesso.",
       });
 
-      router.push(`/obrigado?bookingId=${bookingId}&type=${searchType}`);
+      router.push(`/obrigado?bookingId=${bookingId}`);
     } catch (error) {
       console.error('Error confirming booking or fetching data:', error);
       toast({
@@ -242,13 +241,13 @@ function PaymentScreenContent({}) {
        // const hasTotal = jsonResponse.text.includes(bookingDetails?.total_price?.toString().replace('.', ',')); // Basic check, might need refinement
 
         const hasReference = [
-  "AO06.0005.0000.0822.8915.1011.5",
-  "AO06 0005 0000 0822 8915 1011 5",
-  "AO06000500000822891510115",
-  "0005.0000.0822.8915.1011.5",
-  "0005 0000 0822 8915 1011 5",
-  "000500000822891510115","934 937 545"
-].some(ref => jsonResponse.text.includes(ref));
+          "AO06.0055.0000.1009.6480.1012.9",
+          "AO06 0055 0000 1009 6480 1012 9",
+          "AO06005500001009648010129",
+          "0055.0000.1009.6480.1012.9",
+          "0055 0000 1009 6480 1012 9",
+          "934 937 545"
+        ].some(ref => jsonResponse.text.includes(ref));
 
         if (hasTotal && hasReference) {
           const verificationResponse = await fetch(
@@ -329,7 +328,8 @@ function PaymentScreenContent({}) {
     });
   };
 
-      const copyN = () => {
+
+    const copyN = () => {
     navigator.clipboard.writeText(NT);
     toast({
       title: "Nº Telefone Copiado",
@@ -338,11 +338,11 @@ function PaymentScreenContent({}) {
   };
 
   if (loading) {
-    return <BusTicketLoader type={searchType} />;
+    return <BusTicketLoader />;
   }
 
   if (!bookingDetails || !userProfile) {
-    return <BusTicketLoader type={searchType} />; // Or return null or a specific message
+    return <BusTicketLoader />; // Or return null or a specific message
   }
 
   const totalPrice = bookingDetails.total_price;
@@ -383,61 +383,53 @@ function PaymentScreenContent({}) {
         </div>
 
         {/* Payment Details Section */}
-      <div className="relative group"> 
-  {/* ... (IBAN details remain the same) ... */}
-  <div className="absolute -inset-0.5 bg-orange-500 rounded-2xl opacity-50 group-hover:opacity-75 transition duration-300 blur-sm"></div>
-  <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-orange-500 transition-all duration-300">
-    <div className="flex justify-between items-center mb-4">
-      <div className="flex items-center space-x-2">
-        <CreditCard className="text-orange-500" />
-        <h2 className="text-2xl font-bold text-white">Detalhes de Pagamento</h2>
-      </div>
-    </div>
-    
-    <div className="grid md:grid-cols-2 gap-4 text-white">
-      <div>
-        <p className="text-sm text-gray-400">Total a Pagar</p>
-        <strong className="text-3xl text-orange-500">
-          {totalPrice.toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' })}
-        </strong>
-      </div>
-      <div>
-        <p className="text-sm text-gray-400">Empresa</p>
-        <strong className="text-lg text-white">CEM DESTINOS COMERCIO E PRESTAÇÃO</strong>
+        <div className="relative group">
+          {/* ... (IBAN details remain the same) ... */}
+          <div className="absolute -inset-0.5 bg-orange-500 rounded-2xl opacity-50 group-hover:opacity-75 transition duration-300 blur-sm"></div>
+          <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-orange-500 transition-all duration-300">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center space-x-2">
+                <CreditCard className="text-orange-500" />
+                <h2 className="text-2xl font-bold text-white">Detalhes de Pagamento</h2>
+              </div>
+            </div>
+            <div className="grid md:grid-cols-2 gap-4 text-white">
+              <div>
+                <p className="text-sm text-gray-400">Total a Pagar</p>
+                <strong className="text-3xl text-orange-500">
+                  {totalPrice.toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' })}
+                </strong>
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">Empresa</p>
+                <strong className="text-lg text-white">CEM DESTINOS COMERCIO E PRESTAÇÃO</strong>
+                <p className="text-sm text-gray-400">IBAN</p>
+                <div className="flex items-center space-x-2">
+                  <strong>{IBAN}</strong>
+                  <button
+                    onClick={copyIBAN}
+                    className="text-orange-500 hover:text-orange-400"
+                  >
+                    <Copy size={18} />
+                  </button>
+                </div>
 
-        <p className="text-sm text-gray-400">IBAN</p>
-        <div className="flex items-center space-x-2">
-          <strong>{IBAN}</strong>
-          <button
-            onClick={copyIBAN}
-            className="text-orange-500 hover:text-orange-400"
-          >
-            <Copy size={18} />
-          </button>
-        </div>
-
-        <div className="mt-4">
-          <p className="text-sm text-gray-400">Nº Telefone</p>
-          <div className="flex items-center space-x-2">
-            <strong>{NT}</strong>
-            <button
-              onClick={copyN}
-              className="text-orange-500 hover:text-orange-400"
-            >
-              <Copy size={18} />
-            </button>
+                <div style={{ marginTop: '1rem' }}>
+                  <p className="text-sm text-gray-400">Nº Telefone</p>
+                <div className="flex items-center space-x-2">
+                  <strong>{NT}</strong>
+                  <button
+                    onClick={copyN}
+                    className="text-orange-500 hover:text-orange-400"
+                  >
+                    <Copy size={18} />
+                  </button>
+                </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-
-    {/* PAYMENT METHODS NOTE */}
-    <div className="mt-6 text-sm text-center text-gray-300 italic">
-      Pagamento com App, Internet Banking, MultiCaixa Express ou Transferência Expressa
-    </div>
-  </div>
-</div>
-
 
         {/* Error Alert */}
         {comprovativoErro && (
@@ -525,7 +517,7 @@ function PaymentScreenContent({}) {
   );
 }
 
-export default function PagamentoPage() {
+export default function PaymentScreen() {
   return (
     <Suspense fallback={<BusTicketLoader />}>
       <PaymentScreenContent />
