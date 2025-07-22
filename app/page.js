@@ -157,7 +157,7 @@ export default function Home() { // Renamed to Home as per user's move
             const filteredRoutes = allBusRoutes;
             const origins = [...new Set(filteredRoutes.map(route => route.origin))];
             setFromSuggestions(origins);
-        } else if (activeTab === 'airplane' && allPlaneRoutes.length > 0) {
+        } else if (activeTab === 'plane' && allPlaneRoutes.length > 0) {
             const origins = [...new Set(allPlaneRoutes.map(route => route.origin))];
             setFromSuggestions(origins);
         } else if (activeTab === 'train' && allTrainRoutes.length > 0) {
@@ -212,7 +212,7 @@ export default function Home() { // Renamed to Home as per user's move
                     setFromSuggestions(origins);
                 }
                 break;
-            case 'airplane':
+            case 'plane':
                 setFromPlaceholder('Origem (Avião)');
                 setToPlaceholder('Destino (Avião)');
                 setSearchBtnText('Pesquisar Voos');
@@ -268,7 +268,7 @@ export default function Home() { // Renamed to Home as per user's move
             );
             const origins = [...new Set(filteredRoutes.map(route => route.origin))];
             setFromSuggestions(origins);
-        } else if (activeTab === 'airplane' && allPlaneRoutes.length > 0) {
+        } else if (activeTab === 'plane' && allPlaneRoutes.length > 0) {
             const filteredRoutes = allPlaneRoutes.filter(route =>
                 route.origin.toLowerCase().includes(value.toLowerCase())
             );
@@ -298,7 +298,7 @@ export default function Home() { // Renamed to Home as per user's move
                 route.destination.toLowerCase().includes(value.toLowerCase())
             ).map(route => route.destination);
             setToSuggestions([...new Set(validDestinations)]);
-        } else if (activeTab === 'airplane' && fromLocation && allPlaneRoutes.length > 0) {
+        } else if (activeTab === 'plane' && fromLocation && allPlaneRoutes.length > 0) {
             const validDestinations = allPlaneRoutes.filter(route =>
                 route.origin === fromLocation &&
                 route.destination.toLowerCase().includes(value.toLowerCase())
@@ -329,7 +329,7 @@ export default function Home() { // Renamed to Home as per user's move
                     route.origin === value
                 ).map(route => route.destination);
                 setToSuggestions([...new Set(validDestinations)]);
-            } else if (activeTab === 'airplane' && allPlaneRoutes.length > 0) {
+            } else if (activeTab === 'plane' && allPlaneRoutes.length > 0) {
                 const validDestinations = allPlaneRoutes.filter(route =>
                     route.origin === value
                 ).map(route => route.destination);
@@ -437,7 +437,7 @@ export default function Home() { // Renamed to Home as per user's move
             <div className="search-card">
                 <div className="search-tabs">
                     <div className={`tab ${activeTab === 'bus' ? 'active' : ''}`} onClick={() => handleTabClick('bus')} data-type="bus"><Bus size={20} /></div>
-                    <div className={`tab ${activeTab === 'airplane' ? 'active' : ''}`} onClick={() => handleTabClick('airplane')} data-type="airplane"><Plane size={20} /></div>
+                    <div className={`tab ${activeTab === 'plane' ? 'active' : ''}`} onClick={() => handleTabClick('plane')} data-type="plane"><Plane size={20} /></div>
                     <div className={`tab ${activeTab === 'train' ? 'active' : ''}`} onClick={() => handleTabClick('train')} data-type="train"><Train size={20} /></div>
                     <div className={`tab ${activeTab === 'boat' ? 'active' : ''}`} onClick={() => handleTabClick('boat')} data-type="boat"><Ship size={20} /></div>
                 </div>

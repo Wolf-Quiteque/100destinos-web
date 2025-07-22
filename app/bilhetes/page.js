@@ -181,7 +181,7 @@ const BilhetesClientComponent = () => {
         <div className="max-w-4xl mx-auto relative"> {/* Added relative positioning */}
           <div className="flex items-center justify-center mb-6 pt-12 md:pt-0"> {/* Increased padding top for mobile */}
             <h1 className="text-3xl md:text-4xl font-bold text-white text-center"> {/* Centered title */}
-              {searchType === 'bus' ? (isUrban ? 'Rotas Urbanas' : 'Rotas Interprovinciais') : 'Voos Disponíveis'}
+              Viagens Disponíveis
             </h1>
             {/* <SearchModal onSearch={handleSearch} /> */} {/* Removed Search Modal */}
           </div>
