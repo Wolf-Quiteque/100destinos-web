@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react'; // Added useMemo
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useSearchParams, useRouter } from 'next/navigation'; // Added useSearchParams and useRouter
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bus, Plane, Clock, MapPin, Ticket, Route, HandCoins, Zap, Loader2, ArrowLeft } from 'lucide-react'; // Added Plane icon
+import { Bus, Plane, Clock, MapPin, Ticket, Route, HandCoins, Zap, Loader2, ArrowLeft, Train } from 'lucide-react'; // Added Plane icon
 import PassengerModal from './PassengerModal';
 import SearchModal from './SearchModal';
 import { Button } from '@/components/ui/button'; // Assuming Button component exists
@@ -262,11 +262,10 @@ const TicketCard = ({ ticket, selectTicket, searchType }) => {
           <img src={ticket.company_logo} style={{maxWidth:'80px'}} alt="Company Logo" className="h-8 w-28 mr-4" />
           
           <div className="flex items-center space-x-2">
-            {searchType === 'bus' ? (
-              <Bus className="text-orange-500" />
-            ) : (
-              <Plane className="text-orange-500" />
-            )}
+            {searchType === 'bus' && <Bus className="text-orange-500" />}
+            {searchType === 'plane' && <Plane className="text-orange-500" />}
+            {searchType === 'train' && <Train className="text-orange-500" />}
+            {searchType === 'boat' && <Ship className="text-orange-500" />}
             <h2 className="text-lg font-bold text-white">
               {ticket.company_name.length > 21 ? `${ticket.company_name.slice(0, 21)}...` : ticket.company_name}
 
@@ -296,13 +295,31 @@ const TicketCard = ({ ticket, selectTicket, searchType }) => {
           </div>
         </div>
 
-        {/* Optional Flight Info */}
+        {/* Optional Flight/Train/Boat Info */}
         {searchType === 'plane' && ticket.flight_number && (
           <div className="flex items-center space-x-2 text-white mb-4">
             <Ticket className="text-orange-500" />
             <div>
               <p className="text-sm text-gray-400">Voo</p>
               <strong className="text-white">{ticket.flight_number} ({ticket.airline_code})</strong>
+            </div>
+          </div>
+        )}
+        {searchType === 'train' && ticket.train_number && (
+          <div className="flex items-center space-x-2 text-white mb-4">
+            <Ticket className="text-orange-500" />
+            <div>
+              <p className="text-sm text-gray-400">Comboio</p>
+              <strong className="text-white">{ticket.train_number}</strong>
+            </div>
+          </div>
+        )}
+        {searchType === 'boat' && ticket.boat_name && (
+          <div className="flex items-center space-x-2 text-white mb-4">
+            <Ticket className="text-orange-500" />
+            <div>
+              <p className="text-sm text-gray-400">Barco</p>
+              <strong className="text-white">{ticket.boat_name}</strong>
             </div>
           </div>
         )}

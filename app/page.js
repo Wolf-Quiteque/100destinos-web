@@ -31,7 +31,9 @@ export default function Home() { // Renamed to Home as per user's move
     const [fromSuggestions, setFromSuggestions] = useState([]);
     const [toSuggestions, setToSuggestions] = useState([]);
     const [allBusRoutes, setAllBusRoutes] = useState([]);
-    const [allPlaneRoutes, setAllPlaneRoutes] = useState([]); // New state for plane routes
+    const [allPlaneRoutes, setAllPlaneRoutes] = useState([]);
+    const [allTrainRoutes, setAllTrainRoutes] = useState([]); // New state for train routes
+    const [allBoatRoutes, setAllBoatRoutes] = useState([]); // New state for boat routes
     const [selectedRouteType, setSelectedRouteType] = useState(null); // 'Urbano' or 'Interprovincial'
     const [isLoadingRoutes, setIsLoadingRoutes] = useState(true);
     const [departureDate, setDepartureDate] = useState('');
@@ -111,6 +113,28 @@ export default function Home() { // Renamed to Home as per user's move
                 setAllPlaneRoutes(planeData);
             }
 
+            // Fetch train routes
+            const { data: trainData, error: trainError } = await supabase
+                .from('train_routes')
+                .select('origin, destination, type');
+
+            if (trainError) {
+                console.error('Error fetching train routes:', trainError);
+            } else {
+                setAllTrainRoutes(trainData);
+            }
+
+            // Fetch boat routes
+            const { data: boatData, error: boatError } = await supabase
+                .from('boat_routes')
+                .select('origin, destination, type');
+
+            if (boatError) {
+                console.error('Error fetching boat routes:', boatError);
+            } else {
+                setAllBoatRoutes(boatData);
+            }
+
             setIsLoadingRoutes(false);
         };
 
@@ -121,21 +145,29 @@ export default function Home() { // Renamed to Home as per user's move
     useEffect(() => {
         console.log('Current allBusRoutes state:', allBusRoutes);
         console.log('Current allPlaneRoutes state:', allPlaneRoutes);
-    }, [allBusRoutes, allPlaneRoutes]);
+        console.log('Current allTrainRoutes state:', allTrainRoutes);
+        console.log('Current allBoatRoutes state:', allBoatRoutes);
+    }, [allBusRoutes, allPlaneRoutes, allTrainRoutes, allBoatRoutes]);
 
     // Initialize selectedRouteType from localStorage and filter initial suggestions
     useEffect(() => {
         const userSelectedType = localStorage.getItem('userSelect');
         if (userSelectedType && activeTab === 'bus') { // Only apply for bus tab initially
             setSelectedRouteType(userSelectedType);
-            const filteredRoutes = allBusRoutes
+            const filteredRoutes = allBusRoutes;
             const origins = [...new Set(filteredRoutes.map(route => route.origin))];
             setFromSuggestions(origins);
         } else if (activeTab === 'airplane' && allPlaneRoutes.length > 0) {
             const origins = [...new Set(allPlaneRoutes.map(route => route.origin))];
             setFromSuggestions(origins);
+        } else if (activeTab === 'train' && allTrainRoutes.length > 0) {
+            const origins = [...new Set(allTrainRoutes.map(route => route.origin))];
+            setFromSuggestions(origins);
+        } else if (activeTab === 'boat' && allBoatRoutes.length > 0) {
+            const origins = [...new Set(allBoatRoutes.map(route => route.origin))];
+            setFromSuggestions(origins);
         }
-    }, [allBusRoutes, allPlaneRoutes, activeTab]); // Depend on all routes and activeTab
+    }, [allBusRoutes, allPlaneRoutes, allTrainRoutes, allBoatRoutes, activeTab]); // Depend on all routes and activeTab
 
     // Ad slideshow effect
     const adImages = [
@@ -202,6 +234,11 @@ export default function Home() { // Renamed to Home as per user's move
                 setToIconComponent(() => Train);
                 setSearchButtonIconComponent(() => Search);
                 setSelectedRouteType(null); // Clear route type for non-bus searches
+                // Initialize suggestions for train type
+                if (allTrainRoutes.length > 0) {
+                    const origins = [...new Set(allTrainRoutes.map(route => route.origin))];
+                    setFromSuggestions(origins);
+                }
                 break;
             case 'boat':
                 setFromPlaceholder('Porto de Partida (Barco)');
@@ -211,6 +248,11 @@ export default function Home() { // Renamed to Home as per user's move
                 setToIconComponent(() => Ship);
                 setSearchButtonIconComponent(() => Search);
                 setSelectedRouteType(null); // Clear route type for non-bus searches
+                // Initialize suggestions for boat type
+                if (allBoatRoutes.length > 0) {
+                    const origins = [...new Set(allBoatRoutes.map(route => route.origin))];
+                    setFromSuggestions(origins);
+                }
                 break;
             default:
                 break;
@@ -221,13 +263,25 @@ export default function Home() { // Renamed to Home as per user's move
         const value = e.target.value;
         setFromLocation(value);
         if (activeTab === 'bus' && selectedRouteType && allBusRoutes.length > 0) {
-            const filteredRoutes = allBusRoutes.filter(route => 
+            const filteredRoutes = allBusRoutes.filter(route =>
                 route.origin.toLowerCase().includes(value.toLowerCase())
             );
             const origins = [...new Set(filteredRoutes.map(route => route.origin))];
             setFromSuggestions(origins);
         } else if (activeTab === 'airplane' && allPlaneRoutes.length > 0) {
-            const filteredRoutes = allPlaneRoutes.filter(route => 
+            const filteredRoutes = allPlaneRoutes.filter(route =>
+                route.origin.toLowerCase().includes(value.toLowerCase())
+            );
+            const origins = [...new Set(filteredRoutes.map(route => route.origin))];
+            setFromSuggestions(origins);
+        } else if (activeTab === 'train' && allTrainRoutes.length > 0) {
+            const filteredRoutes = allTrainRoutes.filter(route =>
+                route.origin.toLowerCase().includes(value.toLowerCase())
+            );
+            const origins = [...new Set(filteredRoutes.map(route => route.origin))];
+            setFromSuggestions(origins);
+        } else if (activeTab === 'boat' && allBoatRoutes.length > 0) {
+            const filteredRoutes = allBoatRoutes.filter(route =>
                 route.origin.toLowerCase().includes(value.toLowerCase())
             );
             const origins = [...new Set(filteredRoutes.map(route => route.origin))];
@@ -246,7 +300,20 @@ export default function Home() { // Renamed to Home as per user's move
             setToSuggestions([...new Set(validDestinations)]);
         } else if (activeTab === 'airplane' && fromLocation && allPlaneRoutes.length > 0) {
             const validDestinations = allPlaneRoutes.filter(route =>
-                route.origin === value
+                route.origin === fromLocation &&
+                route.destination.toLowerCase().includes(value.toLowerCase())
+            ).map(route => route.destination);
+            setToSuggestions([...new Set(validDestinations)]);
+        } else if (activeTab === 'train' && fromLocation && allTrainRoutes.length > 0) {
+            const validDestinations = allTrainRoutes.filter(route =>
+                route.origin === fromLocation &&
+                route.destination.toLowerCase().includes(value.toLowerCase())
+            ).map(route => route.destination);
+            setToSuggestions([...new Set(validDestinations)]);
+        } else if (activeTab === 'boat' && fromLocation && allBoatRoutes.length > 0) {
+            const validDestinations = allBoatRoutes.filter(route =>
+                route.origin === fromLocation &&
+                route.destination.toLowerCase().includes(value.toLowerCase())
             ).map(route => route.destination);
             setToSuggestions([...new Set(validDestinations)]);
         }
@@ -294,15 +361,10 @@ export default function Home() { // Renamed to Home as per user's move
             queryParams.append('returnDate', returnDate);
         }
 
-        if (activeTab === 'bus' && fromLocation && toLocation) {
-            console.log(`Searching for bus from ${fromLocation} to ${toLocation} (${selectedRouteType})`);
+        if (fromLocation && toLocation) {
+            queryParams.append('type', activeTab); // Add type parameter based on activeTab
             localStorage.setItem('searchFrom', fromLocation);
-            localStorage.setItem('userSelect', selectedRouteType); // Ensure route type is passed
-            queryParams.append('type', 'bus'); // Add type parameter
-            router.push(`/bilhetes?${queryParams.toString()}`);
-        } else if (activeTab === 'airplane' && fromLocation && toLocation) {
-            console.log(`Searching for plane from ${fromLocation} to ${toLocation}`);
-            queryParams.append('type', 'plane'); // Add type parameter
+            localStorage.setItem('userSelect', selectedRouteType || activeTab); // Ensure route type is passed
             router.push(`/bilhetes?${queryParams.toString()}`);
         } else {
             console.log(`Searching for ${activeTab} (no specific functionality yet)`);
