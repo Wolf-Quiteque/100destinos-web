@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react'; // Added useMemo
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useSearchParams, useRouter } from 'next/navigation'; // Added useSearchParams and useRouter
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bus, Plane, Clock, MapPin, Ticket, Route, HandCoins, Zap, Loader2, ArrowLeft, Train } from 'lucide-react'; // Added Plane icon
+import { Bus, Plane, Clock, MapPin, Ticket, Route, HandCoins, Zap, Loader2, ArrowLeft, Train,Ship } from 'lucide-react'; // Added Plane icon
 import PassengerModal from './PassengerModal';
 import SearchModal from './SearchModal';
 import { Button } from '@/components/ui/button'; // Assuming Button component exists

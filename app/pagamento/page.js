@@ -201,8 +201,7 @@ function PaymentScreenContent({}) {
     const file = e.target.files[0];
     if (!file) return;
 
-    await confirmBooking(); 
-    return false;
+   
 
     const maxSize = 1 * 1024 * 1024; // 1MB
     if (file.size > maxSize) {
