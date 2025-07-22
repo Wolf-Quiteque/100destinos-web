@@ -9,6 +9,7 @@ import { Loader2, Ticket, MapPin, Clock, Calendar as CalendarIcon, AlertCircle, 
 import { format, isToday, isFuture, isPast, parseISO } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import CarrosTab from './CarrosTab';
+import QRCode from 'qrcode'; // Import QRCode library
 
 // Helper function to combine date and time
 const getCombinedDateTime = (bookingDateStr, timeStr) => {
@@ -59,10 +60,54 @@ const BookingCard = ({ booking }) => {
     }
   };
 
+  const [qrCodeImageUrl, setQrCodeImageUrl] = useState(null);
+
+  useEffect(() => {
+    const generateQrCode = async () => {
+      if (!booking || !route) {
+        setQrCodeImageUrl(null);
+        return;
+      }
+
+      const ticketId = booking.selected_seats?.[0] || booking.id;
+      const passengerName = booking.passenger_details?.[0]?.name || 'Passageiro';
+
+      const qrCodeData = JSON.stringify({
+        bookingId: booking.id,
+        ticketId: ticketId,
+        passengerName: passengerName,
+        route: `${route.origin} - ${route.destination}`,
+        bookingDate: booking.booking_date,
+      });
+
+      try {
+        const url = await QRCode.toDataURL(qrCodeData, {
+          errorCorrectionLevel: 'H',
+          type: 'image/png',
+          width: 128, // Match the size previously used for qrcode.react
+          margin: 1,
+        });
+        setQrCodeImageUrl(url);
+      } catch (err) {
+        console.error('Error generating QR code:', err);
+        setQrCodeImageUrl(null);
+      }
+    };
+
+    generateQrCode();
+  }, [booking, route]);
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow duration-300">
-      <div className="p-4">
-        {/* Card content remains the same */}
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow duration-300 flex flex-col sm:flex-row">
+      {/* QR Code Section */}
+      {qrCodeImageUrl && (
+        <div className="p-4 flex items-center justify-center bg-gray-50 dark:bg-gray-700 sm:border-r sm:border-b-0 border-b border-gray-200 dark:border-gray-600">
+          <img src={qrCodeImageUrl} alt="QR Code" className="w-24 h-24 sm:w-32 sm:h-32" /> {/* Responsive img tag */}
+        </div>
+      )}
+
+      <div className="p-4 flex-grow">
+        {/* Card content */}
         <div className="flex justify-between items-start mb-3">
           <div className="flex items-center space-x-2">
             {route.company_logo ? (
