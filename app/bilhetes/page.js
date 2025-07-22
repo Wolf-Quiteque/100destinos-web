@@ -52,12 +52,12 @@ const BilhetesClientComponent = () => {
     setIsUrban(urbanStatus);
 
     // Fetch routes based on type and other params
-    fetchRoutes(typeParam, urbanStatus, departureParam, destinationParam, dateParam);
+    fetchRoutes(typeParam, departureParam, destinationParam, dateParam);
     setSearchType(typeParam);
 
   }, [searchParams]); // Re-run if searchParams change
 
-  const fetchRoutes = async (type, isUrban, departureParam, destinationParam, dateParam) => {
+  const fetchRoutes = async (type, departureParam, destinationParam, dateParam) => {
     setLoading(true);
     setBusTickets([]); // Clear previous tickets (will now hold all types)
     setFilteredTickets([]); // Clear previous filtered tickets
@@ -67,13 +67,7 @@ const BilhetesClientComponent = () => {
         .select('*')
         .eq('type', type); // Filter by the new type column
 
-      if (type === 'bus') {
-        if (isUrban) {
-          query = query.eq('urbano', true);
-        } else {
-          query = query.eq('urbano', false);
-        }
-      }
+
       // No 'urbano' filter for 'plane' type as per schema
 
       const { data, error } = await query;

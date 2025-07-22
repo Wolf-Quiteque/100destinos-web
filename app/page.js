@@ -128,9 +128,7 @@ export default function Home() { // Renamed to Home as per user's move
         const userSelectedType = localStorage.getItem('userSelect');
         if (userSelectedType && activeTab === 'bus') { // Only apply for bus tab initially
             setSelectedRouteType(userSelectedType);
-            const filteredRoutes = allBusRoutes.filter(route => 
-                userSelectedType === 'Urbano' ? route.urbano : !route.urbano
-            );
+            const filteredRoutes = allBusRoutes
             const origins = [...new Set(filteredRoutes.map(route => route.origin))];
             setFromSuggestions(origins);
         } else if (activeTab === 'airplane' && allPlaneRoutes.length > 0) {
@@ -177,9 +175,7 @@ export default function Home() { // Renamed to Home as per user's move
                 const userSelectedBusType = localStorage.getItem('userSelect');
                 if (userSelectedBusType) {
                     setSelectedRouteType(userSelectedBusType);
-                    const filteredRoutes = allBusRoutes.filter(route => 
-                        userSelectedBusType === 'Urbano' ? route.urbano : !route.urbano
-                    );
+                    const filteredRoutes = allBusRoutes
                     const origins = [...new Set(filteredRoutes.map(route => route.origin))];
                     setFromSuggestions(origins);
                 }
@@ -226,7 +222,6 @@ export default function Home() { // Renamed to Home as per user's move
         setFromLocation(value);
         if (activeTab === 'bus' && selectedRouteType && allBusRoutes.length > 0) {
             const filteredRoutes = allBusRoutes.filter(route => 
-                (selectedRouteType === 'Urbano' ? route.urbano : !route.urbano) &&
                 route.origin.toLowerCase().includes(value.toLowerCase())
             );
             const origins = [...new Set(filteredRoutes.map(route => route.origin))];
@@ -245,7 +240,6 @@ export default function Home() { // Renamed to Home as per user's move
         setToLocation(value);
         if (activeTab === 'bus' && selectedRouteType && fromLocation && allBusRoutes.length > 0) {
             const validDestinations = allBusRoutes.filter(route =>
-                (selectedRouteType === 'Urbano' ? route.urbano : !route.urbano) &&
                 route.origin === fromLocation &&
                 route.destination.toLowerCase().includes(value.toLowerCase())
             ).map(route => route.destination);
@@ -265,7 +259,6 @@ export default function Home() { // Renamed to Home as per user's move
             // When origin is selected, filter destinations
             if (activeTab === 'bus' && selectedRouteType && allBusRoutes.length > 0) {
                 const validDestinations = allBusRoutes.filter(route =>
-                    (selectedRouteType === 'Urbano' ? route.urbano : !route.urbano) &&
                     route.origin === value
                 ).map(route => route.destination);
                 setToSuggestions([...new Set(validDestinations)]);
