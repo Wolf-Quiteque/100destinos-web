@@ -30,7 +30,7 @@ const WhatsappButton = () => {
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-orange-400">Apoio Técnico</DialogTitle>
             <DialogDescription className="text-gray-300">
-              Inicia conversa com apoio técnico de 100 - destinos
+              Inicia conversa com apoio técnico  de 100 - destinos
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-center mt-4">
