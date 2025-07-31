@@ -25,13 +25,20 @@ function PaymentScreenContent({}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const bookingId = searchParams.get('bookingId');
-  const searchType = searchParams.get('type')
-   const { toast } = useToast();
+  const searchType = searchParams.get('type');
+  const { toast } = useToast();
 
-   const [bookingDetails, setBookingDetails] = useState(null);
-   const [userProfile, setUserProfile] = useState(null); // State for user profile
-   const [loading, setLoading] = useState(true);
-   const [uploadedFile, setUploadedFile] = useState(null);
+  // Redirect to hotel payment page if type is 'hotel'
+  useEffect(() => {
+    if (searchType === 'hotel') {
+      router.replace(`/pagamentos/hotel-payment?${searchParams.toString()}`);
+    }
+  }, [searchType, router, searchParams]);
+
+  const [bookingDetails, setBookingDetails] = useState(null);
+  const [userProfile, setUserProfile] = useState(null); // State for user profile
+  const [loading, setLoading] = useState(true);
+  const [uploadedFile, setUploadedFile] = useState(null);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [comprovativoErro, setComprovativoErro] = useState(false); // Keep error state
   const fileInputRef = useRef(null);

@@ -67,9 +67,22 @@ export default function Home() { // Renamed to Home as per user's move
     }, [authUser, supabase]); // Re-run when authUser or supabase client changes
 
     const headerBackgrounds = [
-        '/bg/bg1.webp',
-        '/bg/bg2.webp',
-        '/bg/bg3.webp',
+        '/bg/home/1.jpeg',
+        '/bg/home/2.jpeg',
+        '/bg/home/3.jpeg',
+        '/bg/home/4.jpeg',
+        '/bg/home/5.jpeg',
+        '/bg/home/6.jpeg',
+        '/bg/home/7.jpeg',
+        '/bg/home/8.jpeg',
+        '/bg/home/9.jpeg',
+        '/bg/home/bg1.webp',
+        '/bg/home/bg2.webp',
+        '/bg/home/bg3.webp',
+        '/bg/home/bg4.webp',
+        '/bg/home/palancanegra.jpg',
+        '/bg/home/sera.jpg',
+        '/bg/home/tundavala.jpg',
     ];
 
     const popularRouteImages = [
@@ -157,7 +170,7 @@ export default function Home() { // Renamed to Home as per user's move
             const filteredRoutes = allBusRoutes;
             const origins = [...new Set(filteredRoutes.map(route => route.origin))];
             setFromSuggestions(origins);
-        } else if (activeTab === 'plane' && allPlaneRoutes.length > 0) {
+        } else if (activeTab === 'airplane' && allPlaneRoutes.length > 0) {
             const origins = [...new Set(allPlaneRoutes.map(route => route.origin))];
             setFromSuggestions(origins);
         } else if (activeTab === 'train' && allTrainRoutes.length > 0) {
@@ -171,9 +184,11 @@ export default function Home() { // Renamed to Home as per user's move
 
     // Ad slideshow effect
     const adImages = [
-        '/img/img1.jpg',
-        '/img/img2.jpg',
-        '/img/img3.jpg',
+        '/ads/1.jpeg',
+        '/ads/2.jpg',
+        '/ads/3.jpeg',
+        '/ads/5.jpeg',
+        '/ads/6.webp',
     ];
 
     useEffect(() => {
@@ -212,7 +227,7 @@ export default function Home() { // Renamed to Home as per user's move
                     setFromSuggestions(origins);
                 }
                 break;
-            case 'plane':
+            case 'airplane':
                 setFromPlaceholder('Origem (Avião)');
                 setToPlaceholder('Destino (Avião)');
                 setSearchBtnText('Pesquisar Voos');
@@ -268,7 +283,7 @@ export default function Home() { // Renamed to Home as per user's move
             );
             const origins = [...new Set(filteredRoutes.map(route => route.origin))];
             setFromSuggestions(origins);
-        } else if (activeTab === 'plane' && allPlaneRoutes.length > 0) {
+        } else if (activeTab === 'airplane' && allPlaneRoutes.length > 0) {
             const filteredRoutes = allPlaneRoutes.filter(route =>
                 route.origin.toLowerCase().includes(value.toLowerCase())
             );
@@ -298,7 +313,7 @@ export default function Home() { // Renamed to Home as per user's move
                 route.destination.toLowerCase().includes(value.toLowerCase())
             ).map(route => route.destination);
             setToSuggestions([...new Set(validDestinations)]);
-        } else if (activeTab === 'plane' && fromLocation && allPlaneRoutes.length > 0) {
+        } else if (activeTab === 'airplane' && fromLocation && allPlaneRoutes.length > 0) {
             const validDestinations = allPlaneRoutes.filter(route =>
                 route.origin === fromLocation &&
                 route.destination.toLowerCase().includes(value.toLowerCase())
@@ -329,7 +344,7 @@ export default function Home() { // Renamed to Home as per user's move
                     route.origin === value
                 ).map(route => route.destination);
                 setToSuggestions([...new Set(validDestinations)]);
-            } else if (activeTab === 'plane' && allPlaneRoutes.length > 0) {
+            } else if (activeTab === 'airplane' && allPlaneRoutes.length > 0) {
                 const validDestinations = allPlaneRoutes.filter(route =>
                     route.origin === value
                 ).map(route => route.destination);
@@ -437,7 +452,7 @@ export default function Home() { // Renamed to Home as per user's move
             <div className="search-card">
                 <div className="search-tabs">
                     <div className={`tab ${activeTab === 'bus' ? 'active' : ''}`} onClick={() => handleTabClick('bus')} data-type="bus"><Bus size={20} /></div>
-                    <div className={`tab ${activeTab === 'plane' ? 'active' : ''}`} onClick={() => handleTabClick('plane')} data-type="plane"><Plane size={20} /></div>
+                    <div className={`tab ${activeTab === 'airplane' ? 'active' : ''}`} onClick={() => handleTabClick('airplane')} data-type="airplane"><Plane size={20} /></div>
                     <div className={`tab ${activeTab === 'train' ? 'active' : ''}`} onClick={() => handleTabClick('train')} data-type="train"><Train size={20} /></div>
                     <div className={`tab ${activeTab === 'boat' ? 'active' : ''}`} onClick={() => handleTabClick('boat')} data-type="boat"><Ship size={20} /></div>
                 </div>

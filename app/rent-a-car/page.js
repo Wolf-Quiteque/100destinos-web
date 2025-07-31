@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { User, Calendar as CalendarIcon, Loader2, ArrowLeft } from 'lucide-react'; // Added ArrowLeft
+import ReactDOM from 'react-dom'; // Import ReactDOM for dynamic rendering
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useAuth } from '../../context/AuthContext';
 import { format, isBefore, startOfToday } from 'date-fns'; // Changed addDays to isBefore, startOfToday
@@ -32,6 +33,7 @@ export default function RentACar() {
     const [processingPayment, setProcessingPayment] = useState(false);
     const [filteredCarData, setFilteredCarData] = useState([]); // State for filtered cars
     const [showSearchResults, setShowSearchResults] = useState(false); // New state to control view
+    const [currentAdIndex, setCurrentAdIndex] = useState(0); // New state for ad slideshow
 
     const carData = [
         {"model": "HYUNDAI I10", "price": "50.000 kz", "info": "Preço por Dia", img:"/rent-a-car/hyundai-10.png"},
@@ -51,10 +53,26 @@ export default function RentACar() {
         numericPrice: parseFloat(car.price.replace('.', '').replace(',', '.')) // Convert "50.000 kz" to 50000
     }));
 
+    const adImages = [
+        '/ads/1.jpeg',
+        '/ads/2.jpg',
+        '/ads/3.jpeg',
+        '/ads/5.jpeg',
+        '/ads/6.webp',
+    ];
+
     useEffect(() => {
         // Initialize filteredCarData with all cars when component mounts
         setFilteredCarData(carData);
     }, []);
+
+    // Ad slideshow effect
+    useEffect(() => {
+        const adInterval = setInterval(() => {
+            setCurrentAdIndex((prev) => (prev + 1) % adImages.length);
+        }, 4000); // Change ad every 4 seconds
+        return () => clearInterval(adInterval);
+    }, [adImages.length]);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -288,9 +306,18 @@ export default function RentACar() {
                     >
                         <ArrowLeft size={24} />
                     </button>
-                    <div className="ad-container">
-                        <h2>Anúncio</h2>
-                        <p>Espaço para publicidade</p>
+                    {/* Ads Section */}
+                    <div className="section-title">
+                        Anúncios
+                    </div>
+                    <div className="ads-carousel">
+                        {adImages.map((img, index) => (
+                            <div
+                                key={img}
+                                className={`ad-slide ${index === currentAdIndex ? 'active' : ''}`}
+                                style={{ backgroundImage: `url(${img})` }}
+                            ></div>
+                        ))}
                     </div>
 
                     <div className="section-title">

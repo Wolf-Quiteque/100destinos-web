@@ -1,0 +1,420 @@
+Here's the room information organized with icons, for your Gemini API prompts:
+
+🛏️ Quarto Duplo Standard
+Guest Capacity & Pricing (for 4 nights):
+
+👥 Max people: 2 (US1,476)−VerygoodbreakfastforUS35
+
+👥 Max people: 2 (US$1,540) - Very good breakfast included
+
+👥 Max people: 2 (US$1,836) - Breakfast and dinner included
+
+👤 Max people: 1 (US1,398)−VerygoodbreakfastforUS35
+
+👤 Max people: 1 (US$1,430) - Very good breakfast included
+
+👤 Max people: 1 (US$1,578) - Breakfast and dinner included
+
+Bedding: 🛌 1 double bed
+
+Area: 📏 20 m²
+
+Amenities:
+
+👶 Crib: Available upon request
+
+🌊 Sea view
+
+🏙️ City view
+
+🏡 Courtyard view
+
+❄️ Air conditioning
+
+🚿 Private bathroom
+
+📺 Flat-screen TV
+
+🔇 Soundproofing
+
+🧺 Minibar
+
+📶 Free Wi-Fi
+
+🧴 Free toiletries
+
+🚿 Shower
+
+🔒 Safe
+
+🚻 WC
+
+🧼 Towels
+
+🛏️ Bed linen
+
+🔌 Socket near the bed
+
+🖥️ Desk
+
+🛋️ Seating area
+
+🚪 Private entrance
+
+📺 Television
+
+🩴 Slippers
+
+🧊 Fridge
+
+📞 Telephone
+
+👕 Ironing facilities
+
+☕ Tea and coffee making facilities
+
+🎞️ Pay-per-view channels
+
+hairdryer Hair dryer
+
+⏰ Wake-up service/alarm clock
+
+🧶 Carpeted floor
+
+Kettle Electric kettle
+
+📺 Cable channels
+
+⏰ Wake-up service
+
+💻 Laptop safe
+
+👚 Wardrobe or closet
+
+⬆️ Upper floors accessible by elevator
+
+hangers Clothes rack
+
+🧻 Toilet paper
+
+🧴 Hand sanitizer gel
+
+Payment & Cancellation:
+
+✔️ Free cancellation at any time
+
+💳 No prepayment needed – pay at the accommodation
+
+❌ No credit card required
+
+🛏️ Quarto Twin Standard
+Guest Capacity & Pricing (for 4 nights):
+
+👥 Max people: 2 (US1,476)−VerygoodbreakfastforUS35
+
+👥 Max people: 2 (US$1,540) - Very good breakfast included
+
+👥 Max people: 2 (US$1,836) - Breakfast and dinner included
+
+👤 Max people: 1 (US1,398)−VerygoodbreakfastforUS35
+
+👤 Max people: 1 (US$1,430) - Very good breakfast included
+
+👤 Max people: 1 (US$1,578) - Breakfast and dinner included
+
+Bedding: 🛌 2 single beds
+
+Area: 📏 20 m²
+
+Amenities:
+
+👶 Crib: Available upon request
+
+🏙️ City view
+
+❄️ Air conditioning
+
+🚿 Private bathroom
+
+📺 Flat-screen TV
+
+🔇 Soundproofing
+
+🧺 Minibar
+
+📶 Free Wi-Fi
+
+🧴 Free toiletries
+
+🚿 Shower
+
+🔒 Safe
+
+🚻 WC
+
+🧼 Towels
+
+🛏️ Bed linen
+
+🔌 Socket near the bed
+
+🖥️ Desk
+
+🛋️ Seating area
+
+🚪 Private entrance
+
+📺 Television
+
+🩴 Slippers
+
+🧊 Fridge
+
+📞 Telephone
+
+👕 Ironing facilities
+
+☕ Tea and coffee making facilities
+
+🎞️ Pay-per-view channels
+
+hairdryer Hair dryer
+
+⏰ Wake-up service/alarm clock
+
+🧶 Carpeted floor
+
+Kettle Electric kettle
+
+📺 Cable channels
+
+⏰ Wake-up service
+
+💻 Laptop safe
+
+👚 Wardrobe or closet
+
+⬆️ Upper floors accessible by elevator
+
+hangers Clothes rack
+
+🧻 Toilet paper
+
+🧴 Hand sanitizer gel
+
+Payment & Cancellation:
+
+✔️ Free cancellation at any time
+
+💳 No prepayment needed – pay at the accommodation
+
+❌ No credit card required
+
+🛏️ Quarto Duplo Deluxe
+Guest Capacity & Pricing (for 4 nights):
+
+👥 Max people: 2 (US1,696)−VerygoodbreakfastforUS35
+
+👥 Max people: 2 (US$1,760) - Very good breakfast included
+
+👥 Max people: 2 (US$2,056) - Breakfast and dinner included
+
+👤 Max people: 1 (US1,618)−VerygoodbreakfastforUS35
+
+👤 Max people: 1 (US$1,650) - Very good breakfast included
+
+👤 Max people: 1 (US$1,798) - Breakfast and dinner included
+
+Bedding: 🛌 1 large double bed
+
+Area: 📏 40 m²
+
+Amenities:
+
+👶 Crib: Available upon request
+
+🍳 Private Kitchenette
+
+🌊 Sea view
+
+🍽️ Dishwasher
+
+🧺 Minibar
+
+📶 Free Wi-Fi
+
+🚿 Private bathroom
+
+📺 Flat-screen TV
+
+🔇 Soundproofing
+
+🧴 Free toiletries
+
+🚿 Shower
+
+🔒 Safe
+
+🚻 WC
+
+🧼 Towels
+
+🛏️ Bed linen
+
+🔌 Socket near the bed
+
+🖥️ Desk
+
+🛋️ Seating area
+
+🚪 Private entrance
+
+📺 Television
+
+🩴 Slippers
+
+🧊 Fridge
+
+📞 Telephone
+
+👕 Ironing facilities
+
+☕ Tea and coffee making facilities
+
+🎞️ Pay-per-view channels
+
+hairdryer Hair dryer
+
+⏰ Wake-up service/alarm clock
+
+🧶 Carpeted floor
+
+Kettle Electric kettle
+
+📺 Cable channels
+
+⏰ Wake-up service
+
+💻 Laptop safe
+
+👚 Wardrobe or closet
+
+⬆️ Upper floors accessible by elevator
+
+hangers Clothes rack
+
+🧻 Toilet paper
+
+🧴 Hand sanitizer gel
+
+Payment & Cancellation:
+
+✔️ Free cancellation at any time
+
+💳 No prepayment needed – pay at the accommodation
+
+❌ No credit card required
+
+🛏️ Quarto Twin Deluxe
+Guest Capacity & Pricing (for 4 nights):
+
+👥 Max people: 2 (US1,696)−VerygoodbreakfastforUS35
+
+👥 Max people: 2 (US$1,760) - Very good breakfast included
+
+👥 Max people: 2 (US$2,056) - Breakfast and dinner included
+
+👤 Max people: 1 (US1,618)−VerygoodbreakfastforUS35
+
+👤 Max people: 1 (US$1,650) - Very good breakfast included
+
+👤 Max people: 1 (US$1,798) - Breakfast and dinner included
+
+Bedding: 🛌 2 single beds
+
+Area: 📏 40 m²
+
+Amenities:
+
+👶 Crib: Available upon request
+
+🍳 Private Kitchenette
+
+🍽️ Dishwasher
+
+🧺 Minibar
+
+📶 Free Wi-Fi
+
+🚿 Private bathroom
+
+📺 Flat-screen TV
+
+🔇 Soundproofing
+
+🧴 Free toiletries
+
+🚿 Shower
+
+🔒 Safe
+
+🚻 WC
+
+🧼 Towels
+
+🛏️ Bed linen
+
+🔌 Socket near the bed
+
+🖥️ Desk
+
+🛋️ Seating area
+
+🚪 Private entrance
+
+📺 Television
+
+🩴 Slippers
+
+🧊 Fridge
+
+📞 Telephone
+
+👕 Ironing facilities
+
+☕ Tea and coffee making facilities
+
+🎞️ Pay-per-view channels
+
+hairdryer Hair dryer
+
+⏰ Wake-up service/alarm clock
+
+🧶 Carpeted floor
+
+Kettle Electric kettle
+
+📺 Cable channels
+
+⏰ Wake-up service
+
+💻 Laptop safe
+
+👚 Wardrobe or closet
+
+⬆️ Upper floors accessible by elevator
+
+hangers Clothes rack
+
+🧻 Toilet paper
+
+🧴 Hand sanitizer gel
+
+Payment & Cancellation:
+
+✔️ Free cancellation at any time
+
+💳 No prepayment needed – pay at the accommodation
+
+❌ No credit card required
+

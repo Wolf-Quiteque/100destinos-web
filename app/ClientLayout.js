@@ -6,6 +6,7 @@ import InstallPwaButton from '@/app/components/InstallPwaButton';
 import MobileAppBar from '@/components/MobileAppBar';
 import DesktopDrawerNav from '@/components/DesktopDrawerNav'; // Import the new component
 import { AuthProvider } from '@/context/AuthContext'; // Import the AuthProvider
+import WhatsappButton from '@/components/WhatsappButton'; // Import the new WhatsappButton
 
 export default function ClientLayout({ children }) {
   const pathname = usePathname();
@@ -32,6 +33,7 @@ export default function ClientLayout({ children }) {
         </>
       )}
 
+      <WhatsappButton /> {/* Add the WhatsappButton here */}
       <Toaster />
     </AuthProvider>
   );
