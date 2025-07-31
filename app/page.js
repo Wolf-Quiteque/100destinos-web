@@ -86,9 +86,9 @@ export default function Home() { // Renamed to Home as per user's move
     ];
 
     const popularRouteImages = [
-        '/img/img1.jpg',
-        '/img/img2.jpg',
-        '/img/img3.jpg',
+        '/img/benguela.png',
+        '/img/huambo.jpg',
+        '/img/soyo.jpeg',
     ];
 
     // Header background slideshow
