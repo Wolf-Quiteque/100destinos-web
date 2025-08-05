@@ -16,7 +16,7 @@ const WhatsappButton = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="fixed bottom-[60px] right-4 z-50">
+    <div className="fixed bottom-[90px] right-4 z-50">
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
           <Button

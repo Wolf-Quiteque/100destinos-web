@@ -43,8 +43,9 @@ function PaymentScreenContent({}) {
   const [comprovativoErro, setComprovativoErro] = useState(false); // Keep error state
   const fileInputRef = useRef(null);
 
-  const IBAN = '0055.0000.1009.6480.1012.9';
+  const IBAN = '0005.0000.0822.8915.1011.5';
   const NT = '934937545';
+
 
 
 
@@ -251,13 +252,12 @@ function PaymentScreenContent({}) {
       const hasTotal = jsonResponse.text.includes(bookingDetails?.total_price?.toString().replace('.', ',')); // Basic check, might need refinement
 
         const hasReference = [
-  "AO06.0055.0000.1009.6480.1012.9",
-          "AO06 0055 0000 1009 6480 1012 9",
-          "AO06005500001009648010129",
-          "AO06 005500001009648010129",
-          "0055.0000.1009.6480.1012.9",
-          "0055 0000 1009 6480 1012 9",
-          "005500001009648010129","934 937 545"
+  "AO06.0005.0000.0822.8915.1011.5",
+  "AO06 0005 0000 0822 8915 1011 5",
+  "AO06000500000822891510115",
+  "0005.0000.0822.8915.1011.5",
+  "0005 0000 0822 8915 1011 5",
+  "000500000822891510115"
 ].some(ref => jsonResponse.text.includes(ref));
 
         if (hasTotal && hasReference) {

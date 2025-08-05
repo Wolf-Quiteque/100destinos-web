@@ -43,7 +43,7 @@ export default function Hoteis() {
         fetchProfile();
     }, [authUser, supabase]);
 
-    const adImages = [
+     const adImages = [
         '/ads/1.jpeg',
         '/ads/2.jpg',
         '/ads/3.jpeg',
@@ -204,7 +204,15 @@ export default function Hoteis() {
                         <div className="room-types">
                             {hotelsData.flatMap(hotel => hotel.rooms).slice(0, 4).map((room, index) => (
                                 <div key={index} className="room-type-card">
-                                    <div className="room-type-image" style={{backgroundImage: `url(${room.images[0]})`}}></div>
+                                    <div className="room-type-image-container">
+                                        <Image
+                                            src={room.images[0]}
+                                            alt={room.name}
+                                            layout="fill"
+                                            objectFit="cover"
+                                            className="room-type-image"
+                                        />
+                                    </div>
                                     <h4>{room.name}</h4>
                                 </div>
                             ))}
@@ -218,7 +226,14 @@ export default function Hoteis() {
                         <div className="hotel-list">
                             {hotels.map((hotel) => (
                                 <Link href={`/hoteis/${hotel.id}`} key={hotel.id} className="hotel-card">
-                                    <div className="hotel-image" style={{backgroundImage: `url(${hotel.images[0]})`}}>
+                                    <div className="hotel-image-container">
+                                        <Image
+                                            src={hotel.images[0]}
+                                            alt={hotel.name}
+                                            layout="fill"
+                                            objectFit="cover"
+                                            className="hotel-image"
+                                        />
                                         {hotel.rating >= 4.8 && <div className="hotel-badge">Mais Popular</div>}
                                         {hotel.rating >= 4.9 && <div className="hotel-badge">Luxo</div>}
                                         {hotel.rating >= 4.5 && hotel.rating < 4.8 && <div className="hotel-badge">Melhor Custo-Benefício</div>}

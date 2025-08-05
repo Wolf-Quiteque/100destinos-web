@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { BedDouble, Calendar, Search, Star, Heart, Gift, User, MapPin, Ruler, Utensils, Car, Clock, X } from 'lucide-react';
 import hotelsData from '../../../lib/hotelData';
 import { format } from 'date-fns';
-import { use } from 'react';
+import { use } from 'react'; // Correct import for use hook
 
 export default function HotelDetailPage({ params }) {
     const router = useRouter();
@@ -126,7 +126,7 @@ export default function HotelDetailPage({ params }) {
                         </div>
                         <div className="room-images-carousel">
                             {selectedRoom.images.map((img, index) => (
-                                <Image key={index} src={img} alt={`${selectedRoom.name} image ${index + 1}`} width={400} height={300} className="room-detail-image" unoptimized={true} />
+                                <Image key={index} src={img} alt={`${selectedRoom.name} image ${index + 1}`} width={400} height={300} className="room-detail-image" />
                             ))}
                         </div>
                         <div className="room-amenities">
