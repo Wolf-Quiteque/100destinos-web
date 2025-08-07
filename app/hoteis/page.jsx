@@ -166,7 +166,7 @@ export default function Hoteis() {
                         </div>
                     </div>
 
-                    <div className="content-wrapper" style={{marginTop: '300px'}}>
+                    <div className="content-wrapper offers-section">
                         <div className="section-title">
                             Ofertas Especiais
                         </div>
@@ -208,8 +208,8 @@ export default function Hoteis() {
                                         <Image
                                             src={room.images[0]}
                                             alt={room.name}
-                                            layout="fill"
-                                            objectFit="cover"
+                                            fill
+                                            style={{ objectFit: 'cover' }}
                                             className="room-type-image"
                                         />
                                     </div>
@@ -230,8 +230,8 @@ export default function Hoteis() {
                                         <Image
                                             src={hotel.images[0]}
                                             alt={hotel.name}
-                                            layout="fill"
-                                            objectFit="cover"
+                                            fill
+                                            style={{ objectFit: 'cover' }}
                                             className="hotel-image"
                                         />
                                         {hotel.rating >= 4.8 && <div className="hotel-badge">Mais Popular</div>}

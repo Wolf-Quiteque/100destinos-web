@@ -19,15 +19,15 @@ body {
 
 .hero-section {
     position: relative;
-    padding: 20px 0;
-    min-height: 400px; /* Changed to min-height to allow content to determine height */
+    padding: 20px 0 40px 0;
+    min-height: 100vh;
     background-size: cover;
     background-position: center;
     color: var(--light);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    margin-bottom: 0; /* Removed margin to control spacing with padding */
+    margin-bottom: -120px; /* Negative margin to create overlap */
 }
 
 .hero-section::before {
@@ -46,6 +46,11 @@ body {
     z-index: 2;
 }
 
+.hero-section .content-wrapper {
+    position: relative;
+    z-index: 1; /* Lower z-index so search card can overlay */
+}
+
 .hotel-hero {
     background-image: url('/bg/hotel.webp');
 }
@@ -54,11 +59,21 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
-    padding-top: 40px; /* Added padding to create space for the search card */
+    padding-top: 40px;
+}
+
+.offers-section {
+    padding-top: 140px; /* Space for overlapped search card */
+    position: relative;
+    z-index: 5;
 }
 
 .header {
     padding: 20px 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
 }
 
 .header-top {
@@ -105,13 +120,14 @@ body {
 }
 
 .search-card {
-    background-color: rgba(30, 30, 30, 0.8);
-    backdrop-filter: blur(10px);
-    border-radius: 20px;
-    padding: 2rem;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 40px; /* Space for the ad container */
+    background-color: rgba(30, 30, 30, 0.95);
+    backdrop-filter: blur(15px);
+    border-radius: 24px;
+    padding: 2.5rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    margin: 2rem 0;
+    z-index: 10;
 }
 
 .search-form .form-row {
@@ -179,10 +195,14 @@ body {
 .section-title {
     font-size: 1.8rem;
     font-weight: 700;
-    margin: 3rem 0 1.5rem;
+    margin: 2rem 0 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.offers-section .section-title:first-child {
+    margin-top: 0;
 }
 
 .see-all {
@@ -274,8 +294,7 @@ body {
     width: 100%;
     height: 250px;
     overflow: hidden;
-    border-radius: 16px; /* Inherit from parent */
-    border: 2px solid red; /* For debugging */
+    border-radius: 16px;
 }
 
 .room-type-image {
@@ -340,8 +359,7 @@ body {
     width: 100%;
     height: 200px;
     overflow: hidden;
-    border-radius: 16px; /* Inherit from parent */
-    border: 2px solid blue; /* For debugging */
+    border-radius: 16px;
 }
 
 .hotel-image {
@@ -404,12 +422,17 @@ body {
 
 @media (max-width: 768px) {
     .hero-section {
-        padding: 10px 0;
-        min-height: auto;
+        min-height: 90vh;
+        padding: 10px 0 20px 0;
+        margin-bottom: -80px;
     }
     .content-wrapper {
         padding: 0 15px;
         padding-top: 20px;
+    }
+    
+    .offers-section {
+        padding-top: 100px;
     }
     .header-top {
         margin-bottom: 16px;
@@ -422,7 +445,7 @@ body {
     }
     .search-card {
         padding: 1.5rem;
-        margin-top: 20px;
+        margin: 1.5rem 0;
     }
     .search-form .form-row {
         grid-template-columns: 1fr;
@@ -455,6 +478,10 @@ body {
     }
 }
 @media (max-width: 480px) {
+    .hero-section {
+        min-height: 95vh;
+        margin-bottom: -60px;
+    }
     .page-title {
         font-size: 1.8rem;
     }
@@ -463,6 +490,10 @@ body {
     }
     .search-card {
         padding: 1rem;
+        margin: 1rem 0;
+    }
+    .offers-section {
+        padding-top: 80px;
     }
     .form-control {
         padding: 0.9rem 0.9rem 0.9rem 3rem;
