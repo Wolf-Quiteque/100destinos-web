@@ -21,11 +21,36 @@ export default function HotelDetailPage({ params }) {
     const [showRoomModal, setShowRoomModal] = useState(false);
     const [modalRoom, setModalRoom] = useState(null);
     const [currentHeroImage, setCurrentHeroImage] = useState(0);
+    const [imagesLoaded, setImagesLoaded] = useState(false);
 
     useEffect(() => {
         const foundHotel = hotelsData.find(h => h.id === hotelId);
         if (foundHotel) {
             setHotel(foundHotel);
+            // Preload hotel images
+            if (foundHotel.images && foundHotel.images.length > 0) {
+                const imagePromises = foundHotel.images.map(src => {
+                    return new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.onload = () => resolve(src);
+                        img.onerror = (err) => {
+                            console.warn('Failed to load image:', src, err);
+                            resolve(src); // Still resolve to not block other images
+                        };
+                        img.src = src;
+                    });
+                });
+                
+                Promise.all(imagePromises).then(() => {
+                    console.log('All hotel images preloaded');
+                    setImagesLoaded(true);
+                }).catch(err => {
+                    console.warn('Some images failed to load:', err);
+                    setImagesLoaded(true); // Still set to true to show the page
+                });
+            } else {
+                setImagesLoaded(true);
+            }
         } else {
             // Handle hotel not found, e.g., redirect to 404 or hotels list
             router.push('/hoteis');
@@ -34,8 +59,14 @@ export default function HotelDetailPage({ params }) {
 
     // Hero image slideshow
     useEffect(() => {
-        if (!hotel || !hotel.images || hotel.images.length === 0) {
-            console.log('No hotel or images found:', hotel);
+        if (!hotel || !hotel.images || hotel.images.length === 0 || !imagesLoaded) {
+            console.log('Hotel, images, or image loading not ready:', { hotel: !!hotel, images: hotel?.images?.length, imagesLoaded });
+            return;
+        }
+        
+        if (hotel.images.length <= 1) {
+            console.log('Only one image, no slideshow needed');
+            setCurrentHeroImage(0);
             return;
         }
         
@@ -48,10 +79,10 @@ export default function HotelDetailPage({ params }) {
                 console.log('Changing to image index:', nextIndex, 'Image:', hotel.images[nextIndex]);
                 return nextIndex;
             });
-        }, 1500); // 1.5 seconds interval
+        }, 4000); // 4 seconds interval for better viewing
         
         return () => clearInterval(interval);
-    }, [hotel]);
+    }, [hotel, imagesLoaded]);
 
     useEffect(() => {
         if (selectedRoom && checkInDate && checkOutDate) {
@@ -78,7 +109,19 @@ export default function HotelDetailPage({ params }) {
     }, [selectedRoom, checkInDate, checkOutDate, guests]);
 
     if (!hotel) {
-        return <div>Loading hotel details...</div>;
+        return (
+            <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                height: '100vh', 
+                background: 'var(--dark)', 
+                color: 'var(--light)',
+                fontSize: '1.2rem'
+            }}>
+                Loading hotel details...
+            </div>
+        );
     }
 
     const handleRoomSelect = (room) => {
@@ -109,11 +152,29 @@ export default function HotelDetailPage({ params }) {
     return (
         <div className="hotel-detail-container">
             <div className="hotel-hero-detail">
-                {hotel.images.map((image, index) => (
+                {!imagesLoaded && (
+                    <div style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        color: 'white',
+                        fontSize: '1.2rem',
+                        zIndex: 100,
+                        background: 'rgba(0,0,0,0.7)',
+                        padding: '20px',
+                        borderRadius: '10px'
+                    }}>
+                        Carregando imagens...
+                    </div>
+                )}
+                {hotel.images && hotel.images.length > 0 && hotel.images.map((image, index) => (
                     <div
                         key={index}
                         className={`hero-bg-slide ${index === currentHeroImage ? 'active' : ''}`}
                         style={{ backgroundImage: `url(${image})` }}
+                        data-image={image}
+                        data-index={index}
                     ></div>
                 ))}
                 <div className="hero-content">
@@ -131,7 +192,7 @@ export default function HotelDetailPage({ params }) {
                         </button>
                     </div>
                     
-                    <div className="hotel-title-section">
+                    <div className="hotel-title-section" >
                         <div className="hotel-info-left">
                             <h1 className="hotel-name">{hotel.name}</h1>
                             <div className="hotel-location">
@@ -164,7 +225,7 @@ export default function HotelDetailPage({ params }) {
                 </div>
             </div>
 
-            <div className="detail-content">
+            <div className="detail-content" style={{marginTop:"25px"}}>
                 <div className="content-wrapper">
                     <div className="detail-grid">
                         <div className="rooms-section">

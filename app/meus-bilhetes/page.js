@@ -469,28 +469,28 @@ export default function MeusServicosPage() {
                   <div className="flex items-center space-x-1">
                     <Bus className="h-3 w-3 text-blue-500" />
                     <span className="hidden sm:inline">Autocarro</span>
-                    <span className="sm:hidden">Bus</span>
+                    <span className="sm:hidden">Autocarro</span>
                   </div>
                 </TabsTrigger>
                 <TabsTrigger value="plane" className="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-white dark:data-[state=active]:text-black text-xs px-2">
                   <div className="flex items-center space-x-1">
                     <Plane className="h-3 w-3 text-sky-500" />
                     <span className="hidden sm:inline">Avião</span>
-                    <span className="sm:hidden">Plane</span>
+                    <span className="sm:hidden">Avião</span>
                   </div>
                 </TabsTrigger>
                 <TabsTrigger value="train" className="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-white dark:data-[state=active]:text-black text-xs px-2">
                   <div className="flex items-center space-x-1">
                     <Train className="h-3 w-3 text-green-500" />
                     <span className="hidden sm:inline">Comboio</span>
-                    <span className="sm:hidden">Train</span>
+                    <span className="sm:hidden">Comboio</span>
                   </div>
                 </TabsTrigger>
                 <TabsTrigger value="boat" className="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-white dark:data-[state=active]:text-black text-xs px-2">
                   <div className="flex items-center space-x-1">
                     <Ship className="h-3 w-3 text-cyan-500" />
                     <span className="hidden sm:inline">Barco</span>
-                    <span className="sm:hidden">Boat</span>
+                    <span className="sm:hidden">Barco</span>
                   </div>
                 </TabsTrigger>
               </TabsList>
