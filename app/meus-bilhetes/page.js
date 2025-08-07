@@ -5,7 +5,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Loader2, Ticket, MapPin, Clock, Calendar as CalendarIcon, AlertCircle, Bus, Plane, Car, Hotel } from 'lucide-react';
+import { Loader2, Ticket, MapPin, Clock, Calendar as CalendarIcon, AlertCircle, Bus, Plane, Car, Hotel, Train, Ship } from 'lucide-react';
 import { format, isToday, isFuture, isPast, parseISO } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import CarrosTab from './CarrosTab';
@@ -23,6 +23,22 @@ const getCombinedDateTime = (bookingDateStr, timeStr) => {
   } catch (e) {
     console.error("Error parsing date/time:", e, { bookingDateStr, timeStr });
     return null;
+  }
+};
+
+// Helper function to get transportation type information
+const getTransportationInfo = (type) => {
+  switch (type) {
+    case 'bus':
+      return { label: 'Autocarro', icon: Bus, color: 'text-blue-500 dark:text-blue-400' };
+    case 'plane':
+      return { label: 'Avião', icon: Plane, color: 'text-sky-500 dark:text-sky-400' };
+    case 'train':
+      return { label: 'Comboio', icon: Train, color: 'text-green-500 dark:text-green-400' };
+    case 'boat':
+      return { label: 'Barco', icon: Ship, color: 'text-cyan-500 dark:text-cyan-400' };
+    default:
+      return { label: 'Transporte', icon: Bus, color: 'text-gray-500 dark:text-gray-400' };
   }
 };
 
@@ -114,14 +130,29 @@ const BookingCard = ({ booking }) => {
               <img src={route.company_logo} alt={route.company_name || 'Logo'} className="h-6 w-auto" />
             ) : (
               route.type === 'bus' ? (
-                <Bus className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+                <Bus className="h-6 w-6 text-blue-500 dark:text-blue-400" />
+              ) : route.type === 'plane' ? (
+                <Plane className="h-6 w-6 text-sky-500 dark:text-sky-400" />
+              ) : route.type === 'train' ? (
+                <Train className="h-6 w-6 text-green-500 dark:text-green-400" />
+              ) : route.type === 'boat' ? (
+                <Ship className="h-6 w-6 text-cyan-500 dark:text-cyan-400" />
               ) : (
-                <Plane className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+                <Bus className="h-6 w-6 text-gray-500 dark:text-gray-400" />
               )
             )}
-            <span className="text-lg font-semibold text-gray-800 dark:text-white">{route.company_name || 'Empresa Desconhecida'}</span>
+            <div className="flex flex-col">
+              <span className="text-lg font-semibold text-gray-800 dark:text-white">{route.company_name || 'Empresa Desconhecida'}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">{getTransportationInfo(route.type).label}</span>
+            </div>
           </div>
-          {getStatusBadge(booking.booking_status)}
+          <div className="flex items-center space-x-2">
+            {/* Transportation type badge */}
+            <span className={`px-2 py-1 text-xs font-medium rounded-full bg-gray-100 dark:bg-gray-700 ${getTransportationInfo(route.type).color}`}>
+              {getTransportationInfo(route.type).label}
+            </span>
+            {getStatusBadge(booking.booking_status)}
+          </div>
         </div>
         {/* Details grid remains the same */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 text-sm">
@@ -295,56 +326,80 @@ export default function MeusServicosPage() {
     // ** FIX: Removed isFetchingBookings from dependency array **
   }, [session, isAuthLoading, router, supabase]);
 
-  // filteredBookings logic remains the same
+  // Enhanced filteredBookings logic with transport type filtering
   const filteredBookings = useMemo(() => {
     const now = new Date(); // Get current date and time for comparison
 
-    const activo = bookings.filter(b => {
-        if (b.booking_status !== 'confirmed') return false;
-        // Ensure route data is available before checking times
-        if (!b.available_routes || !b.available_routes.departure_time) return false; 
+    // Helper function to filter by transport type and status
+    const filterByTypeAndStatus = (transportType) => {
+      // First filter by transport type
+      const typeFiltered = bookings.filter(b => {
+        if (!b.available_routes) return false;
+        return transportType === 'all' || b.available_routes.type === transportType;
+      });
 
-        try {
-            const combinedDateTime = getCombinedDateTime(b.booking_date, b.available_routes.departure_time);
-            
-            // Check if the combined date/time is in the future
-            return combinedDateTime && isFuture(combinedDateTime);
-        } catch (e) {
-            console.error("Error parsing booking_date or departure_time for activo filter:", e, b.booking_date, b.available_routes.departure_time);
-            return false;
-        }
-    }).sort((a, b) => {
-        // Sort active bookings by departure time
-        const dateTimeA = getCombinedDateTime(a.booking_date, a.available_routes.departure_time);
-        const dateTimeB = getCombinedDateTime(b.booking_date, b.available_routes.departure_time);
-        return dateTimeA - dateTimeB;
-    });
+      const activo = typeFiltered.filter(b => {
+          if (b.booking_status !== 'confirmed') return false;
+          // Ensure route data is available before checking times
+          if (!b.available_routes || !b.available_routes.departure_time) return false; 
 
-    const pendente = bookings.filter(b => b.booking_status === 'pending');
+          try {
+              const combinedDateTime = getCombinedDateTime(b.booking_date, b.available_routes.departure_time);
+              
+              // Check if the combined date/time is in the future
+              return combinedDateTime && isFuture(combinedDateTime);
+          } catch (e) {
+              console.error("Error parsing booking_date or departure_time for activo filter:", e, b.booking_date, b.available_routes.departure_time);
+              return false;
+          }
+      }).sort((a, b) => {
+          // Sort active bookings by departure time
+          const dateTimeA = getCombinedDateTime(a.booking_date, a.available_routes?.departure_time);
+          const dateTimeB = getCombinedDateTime(b.booking_date, b.available_routes?.departure_time);
+          if (!dateTimeA && !dateTimeB) return 0;
+          if (!dateTimeA) return 1;
+          if (!dateTimeB) return -1;
+          return dateTimeA - dateTimeB;
+      });
 
-    const historico = bookings.filter(b => {
-        if (b.booking_status === 'pending') return false; // Pending bookings are not historical
+      const pendente = typeFiltered.filter(b => b.booking_status === 'pending');
 
-        // If not confirmed, or if confirmed but route data is missing, consider it historical
-        if (b.available_routes || !b.available_routes.departure_time) return true; 
+      const historico = typeFiltered.filter(b => {
+          if (b.booking_status === 'pending') return false; // Pending bookings are not historical
 
-        try {
-            const combinedDateTime = getCombinedDateTime(b.booking_date, b.available_routes.departure_time);
+          // If not confirmed, or if confirmed but route data is missing, consider it historical
+          if (!b.available_routes || !b.available_routes.departure_time) return true;
 
-            // If confirmed, check if it's in the past
-            return combinedDateTime && isPast(combinedDateTime);
-        } catch (e) {
-            console.error("Error parsing booking_date or departure_time for historico filter:", e, b.available_routes.departure_time);
-            return true; // Default to historical if parsing fails
-        }
-    }).sort((a, b) => {
-        // Sort historical bookings by departure time (descending)
-        const dateTimeA = getCombinedDateTime(a.booking_date, a.available_routes.departure_time);
-        const dateTimeB = getCombinedDateTime(b.booking_date, b.available_routes.departure_time);
-        return dateTimeB - dateTimeA;
-    });
+          try {
+              const combinedDateTime = getCombinedDateTime(b.booking_date, b.available_routes.departure_time);
 
-    return { activo, pendente, historico };
+              // If confirmed, check if it's in the past
+              return combinedDateTime && isPast(combinedDateTime);
+          } catch (e) {
+              console.error("Error parsing booking_date or departure_time for historico filter:", e, b.available_routes.departure_time);
+              return true; // Default to historical if parsing fails
+          }
+      }).sort((a, b) => {
+          // Sort historical bookings by departure time (descending)
+          const dateTimeA = getCombinedDateTime(a.booking_date, a.available_routes?.departure_time);
+          const dateTimeB = getCombinedDateTime(b.booking_date, b.available_routes?.departure_time);
+          if (!dateTimeA && !dateTimeB) return 0;
+          if (!dateTimeA) return 1;
+          if (!dateTimeB) return -1;
+          return dateTimeB - dateTimeA;
+      });
+
+      return { activo, pendente, historico };
+    };
+
+    // Return filtered bookings for each transport type
+    return {
+      all: filterByTypeAndStatus('all'),
+      bus: filterByTypeAndStatus('bus'),
+      plane: filterByTypeAndStatus('plane'),
+      train: filterByTypeAndStatus('train'),
+      boat: filterByTypeAndStatus('boat')
+    };
   }, [bookings]);
 
   // renderBookingList remains the same
@@ -378,51 +433,96 @@ export default function MeusServicosPage() {
            <span>{error}</span>
          </div>
       ) : (
-        <Tabs defaultValue="viagens" className="w-full max-w-3xl mx-auto">
+        <Tabs defaultValue="transporte" className="w-full max-w-4xl mx-auto">
           <TabsList className="grid w-full grid-cols-3 bg-gray-200 dark:bg-gray-800 rounded-lg mb-4">
-            <TabsTrigger value="viagens" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white dark:data-[state=active]:bg-orange-600">
+            <TabsTrigger value="transporte" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white dark:data-[state=active]:bg-orange-600">
               <div className="flex items-center justify-center space-x-2">
-                <Plane className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                <span>Viagens ({filteredBookings.activo.length})</span>
+                <Plane className="h-4 w-4" />
+                <span className="hidden sm:inline">Transporte</span>
               </div>
             </TabsTrigger>
             <TabsTrigger value="hospedagens" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white dark:data-[state=active]:bg-orange-600">
               <div className="flex items-center justify-center space-x-2">
-                <Hotel className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                <span>Hospedagens</span>
+                <Hotel className="h-4 w-4" />
+                <span className="hidden sm:inline">Hospedagens</span>
               </div>
             </TabsTrigger>
             <TabsTrigger value="carros" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white dark:data-[state=active]:bg-orange-600">
               <div className="flex items-center justify-center space-x-2">
-                <Car className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                <span>Carros</span>
+                <Car className="h-4 w-4" />
+                <span className="hidden sm:inline">Carros</span>
               </div>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="viagens">
-            <Tabs defaultValue="activo" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 bg-gray-200 dark:bg-gray-800 rounded-lg mb-4">
-                <TabsTrigger value="activo" className="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-white dark:data-[state=active]:text-black">
-                  Activo ({filteredBookings.activo.length})
+          <TabsContent value="transporte">
+            {/* Transportation Type Selection */}
+            <Tabs defaultValue="all" className="w-full">
+              <TabsList className="grid w-full grid-cols-5 bg-gray-200 dark:bg-gray-800 rounded-lg mb-4 p-1">
+                <TabsTrigger value="all" className="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-white dark:data-[state=active]:text-black text-xs px-2">
+                  <div className="flex items-center space-x-1">
+                    <Ticket className="h-3 w-3" />
+                    <span>Todos</span>
+                  </div>
                 </TabsTrigger>
-                <TabsTrigger value="pendente" className="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-white dark:data-[state=active]:text-black">
-                  Pendente ({filteredBookings.pendente.length})
+                <TabsTrigger value="bus" className="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-white dark:data-[state=active]:text-black text-xs px-2">
+                  <div className="flex items-center space-x-1">
+                    <Bus className="h-3 w-3 text-blue-500" />
+                    <span className="hidden sm:inline">Autocarro</span>
+                    <span className="sm:hidden">Bus</span>
+                  </div>
                 </TabsTrigger>
-                <TabsTrigger value="historico" className="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-white dark:data-[state=active]:text-black">
-                  Histórico ({filteredBookings.historico.length})
+                <TabsTrigger value="plane" className="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-white dark:data-[state=active]:text-black text-xs px-2">
+                  <div className="flex items-center space-x-1">
+                    <Plane className="h-3 w-3 text-sky-500" />
+                    <span className="hidden sm:inline">Avião</span>
+                    <span className="sm:hidden">Plane</span>
+                  </div>
+                </TabsTrigger>
+                <TabsTrigger value="train" className="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-white dark:data-[state=active]:text-black text-xs px-2">
+                  <div className="flex items-center space-x-1">
+                    <Train className="h-3 w-3 text-green-500" />
+                    <span className="hidden sm:inline">Comboio</span>
+                    <span className="sm:hidden">Train</span>
+                  </div>
+                </TabsTrigger>
+                <TabsTrigger value="boat" className="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-white dark:data-[state=active]:text-black text-xs px-2">
+                  <div className="flex items-center space-x-1">
+                    <Ship className="h-3 w-3 text-cyan-500" />
+                    <span className="hidden sm:inline">Barco</span>
+                    <span className="sm:hidden">Boat</span>
+                  </div>
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="activo">
-                {renderBookingList(filteredBookings.activo)}
-              </TabsContent>
-              <TabsContent value="pendente">
-                {renderBookingList(filteredBookings.pendente)}
-              </TabsContent>
-              <TabsContent value="historico">
-                {renderBookingList(filteredBookings.historico)}
-              </TabsContent>
+              {/* Transport Type Content - Each with status tabs */}
+              {['all', 'bus', 'plane', 'train', 'boat'].map((transportType) => (
+                <TabsContent key={transportType} value={transportType}>
+                  <Tabs defaultValue="activo" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3 bg-gray-100 dark:bg-gray-700 rounded-lg mb-4">
+                      <TabsTrigger value="activo" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white dark:data-[state=active]:bg-orange-600">
+                        Activo ({filteredBookings[transportType].activo.length})
+                      </TabsTrigger>
+                      <TabsTrigger value="pendente" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white dark:data-[state=active]:bg-orange-600">
+                        Pendente ({filteredBookings[transportType].pendente.length})
+                      </TabsTrigger>
+                      <TabsTrigger value="historico" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white dark:data-[state=active]:bg-orange-600">
+                        Histórico ({filteredBookings[transportType].historico.length})
+                      </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="activo">
+                      {renderBookingList(filteredBookings[transportType].activo)}
+                    </TabsContent>
+                    <TabsContent value="pendente">
+                      {renderBookingList(filteredBookings[transportType].pendente)}
+                    </TabsContent>
+                    <TabsContent value="historico">
+                      {renderBookingList(filteredBookings[transportType].historico)}
+                    </TabsContent>
+                  </Tabs>
+                </TabsContent>
+              ))}
             </Tabs>
           </TabsContent>
           <TabsContent value="hospedagens">
