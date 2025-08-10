@@ -47,7 +47,21 @@ function PaymentScreenContent({}) {
   const NT = '934937545';
 
 
+function hasPrice(text, price) {
+  // Convert price to string, remove any spaces or commas/dots for matching
+  const normalizedPrice = price.toString().replace(/[.,\s]/g, '');
+  
+  // Regex: match optional thousands separators, optional decimal part
+  const regex = new RegExp(
+    `(?:\\b|\\D)(?:${normalizedPrice.replace(
+      /\B(?=(\d{3})+(?!\d))/g,
+      '[ .]?'
+    )})(?:[.,]\\d{1,2})?(?:\\b|\\D)`,
+    'g'
+  );
 
+  return regex.test(text);
+}
 
   const confirmBooking = async () => {
     if (!bookingId) return;
@@ -206,6 +220,7 @@ function PaymentScreenContent({}) {
   }, [bookingId, router, supabase, toast]); // Added toast to dependency array
 
   const handleFileUpload = async (e) => {
+    console.log("lkjklj")
     const file = e.target.files[0];
     if (!file) return;
 
@@ -238,18 +253,22 @@ function PaymentScreenContent({}) {
         body: formData,
       });
 
+
+          const jsonResponse = await response.json();
+          console.log(jsonResponse)
       if (!response.ok) {
          throw new Error(`Upload failed with status: ${response.status}`);
       }
 
-      const jsonResponse = await response.json();
+    
       const comprovativoText = jsonResponse.text.replace(/\n/g, ' ').replace(/\s+/g, '');
 
       if (jsonResponse.original) {
-        const expectedTotalPriceString = bookingDetails?.total_price?.toFixed(2).replace('.', ',');
-        // **Important**: Ensure this check uses the actual total price dynamically
-        //   const hasTotal = jsonResponse.text.includes("1,00"); // More robust check,
-      const hasTotal = jsonResponse.text.includes(bookingDetails?.total_price?.toString().replace('.', ',')); // Basic check, might need refinement
+   
+      
+      const hasTotal = hasPrice(comprovativoText, bookingDetails.total_price);
+
+    
 
         const hasReference = [
   "AO06.0005.0000.0822.8915.1011.5",
