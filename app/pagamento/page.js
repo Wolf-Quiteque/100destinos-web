@@ -220,10 +220,7 @@ function hasPrice(text, price) {
   }, [bookingId, router, supabase, toast]); // Added toast to dependency array
 
   const handleFileUpload = async (e) => {
-      await confirmBooking(); // Confirm booking in Supabase
-              // No need to set processing false here, page will redirect
-              return; // Exit after successful confirmation
-    console.log("lkjklj")
+  
     const file = e.target.files[0];
     if (!file) return;
 
