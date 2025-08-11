@@ -2,58 +2,50 @@ import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
+// Helper to load image from public folder
+const loadImage = (src) =>
+  new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+
 const generatePassengerTickets = async (bookingId) => {
   const supabase = createClientComponentClient();
 
   try {
-    // 1. Fetch booking data first
     const { data: bookingData, error: bookingError } = await supabase
       .from('bookings')
       .select('*')
       .eq('id', bookingId)
       .single();
 
-    if (bookingError) {
-      console.error('Error fetching booking:', bookingError);
-      throw bookingError;
-    }
+    if (bookingError) throw bookingError;
+    if (!bookingData) return;
 
-    if (!bookingData) {
-      console.error('No booking found with ID:', bookingId);
-      return;
-    }
-
-    // 2. Fetch related route and company data from the available_routes view
     let route = null;
     let companyName = 'Unknown Company';
 
     if (bookingData.route_id) {
       const { data: routeData, error: routeError } = await supabase
-        .from('available_routes') // Use the view here
-        .select('origin, destination, departure_time, company_name') // Select company_name from the view
+        .from('available_routes')
+        .select('origin, destination, departure_time, company_name')
         .eq('id', bookingData.route_id)
         .single();
 
-      if (routeError) {
-        console.error('Error fetching route from view:', routeError);
-        throw routeError;
-      }
-
+      if (routeError) throw routeError;
       if (routeData) {
         route = routeData;
-        companyName = routeData.company_name || 'Unknown Company'; // Use the correct field
+        companyName = routeData.company_name || 'Unknown Company';
       }
     } else {
-      console.warn('Booking does not have a route_id');
       return;
     }
 
     let passengers = bookingData.passengers;
-
-    if (!passengers || passengers.length === 0) {
-      console.error('No passengers found for this booking');
-      return;
-    }
+    if (!passengers || passengers.length === 0) return;
 
     const doc = new jsPDF({
       orientation: 'portrait',
@@ -64,38 +56,53 @@ const generatePassengerTickets = async (bookingId) => {
     const pageWidth = doc.internal.pageSize.width;
     const dateId = Date.now();
 
-    // Add ticketId to passengers
     const updatedPassengers = passengers.map((passenger) => {
-      const ticketId = `100-ZRD3${bookingId.slice(-6)}${Math.random().toString(36).substr(2, 3).toUpperCase()}`;
+      const ticketId = `100-ZRD3${bookingId.slice(-6)}${Math.random()
+        .toString(36)
+        .substr(2, 3)
+        .toUpperCase()}`;
       return { ...passenger, ticketId };
     });
 
     const displaySelectedSeats = (selectedSeats) => {
       try {
-        const seats = selectedSeats;
-        return seats && seats.length > 0 ? `Assentos Selecionados: ${seats.join(', ')}` : 'Nenhum assento selecionado';
-      } catch (error) {
-        console.error('Error parsing selected seats:', error);
+        return selectedSeats && selectedSeats.length > 0
+          ? `Assentos Selecionados: ${selectedSeats.join(', ')}`
+          : 'Nenhum assento selecionado';
+      } catch {
         return 'Erro ao carregar assentos';
       }
     };
+
+    const logoImg = await loadImage('/logogo.png');
 
     for (let index = 0; index < updatedPassengers.length; index++) {
       const passenger = updatedPassengers[index];
       if (index > 0) doc.addPage();
 
+      // Add logo at top center
+      const logoWidth = 30;
+      const logoHeight = (logoImg.height / logoImg.width) * logoWidth;
+      doc.addImage(
+        logoImg,
+        'WEBP',
+        pageWidth / 2 - logoWidth / 2,
+        5,
+        logoWidth,
+        logoHeight
+      );
+
+      let y = 5 + logoHeight + 5; // Start content below logo
+
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
 
-      // Header & company info
-      doc.text('100-DESTINOS-ZRD3 CONSULTING E PRESTAÇÃO', pageWidth / 2, 10, { align: 'center' });
-      doc.text('NIF: 50012355877', pageWidth / 2, 15, { align: 'center' });
-      doc.text(`${companyName}`, pageWidth / 2, 20, { align: 'center' });
-      doc.text('NIF: 50045564564', pageWidth / 2, 25, { align: 'center' });
+      doc.text('NIF: 5002448939', pageWidth / 2, y, { align: 'center' }); y += 5;
+      // doc.text(`${companyName}`, pageWidth / 2, y, { align: 'center' }); y += 5;
+      // doc.text('NIF: 50045564564', pageWidth / 2, y, { align: 'center' }); y += 10;
 
-      // Route & booking details
-      doc.text(`Prefixo: Linha ${route.origin} - ${route.destination}`, pageWidth / 2, 35, { align: 'center' });
-      doc.text(`Origem: ${route.origin}`, pageWidth / 2, 40, { align: 'center' });
+      doc.text(`Prefixo: Linha ${route.origin} - ${route.destination}`, pageWidth / 2, y, { align: 'center' }); y += 5;
+      doc.text(`Origem: ${route.origin}`, pageWidth / 2, y, { align: 'center' }); y += 5;
 
       const bookingDate = new Date(bookingData.booking_date);
       doc.text(
@@ -108,23 +115,26 @@ const generatePassengerTickets = async (bookingId) => {
           second: '2-digit',
         }),
         pageWidth / 2,
-        45,
+        y,
         { align: 'center' }
-      );
+      ); y += 5;
 
-      doc.text(`Bilhete: ${passenger.ticketId}`, pageWidth / 2, 50, { align: 'center' });
-      doc.text('Tipo: Convencional / Normal', pageWidth / 2, 55, { align: 'center' });
-      doc.text(`Valor: ${bookingData.total_price.toLocaleString('pt-AO', { minimumFractionDigits: 2 })} kz`, pageWidth / 2, 60, { align: 'center' });
+      doc.text(`Bilhete: ${passenger.ticketId}`, pageWidth / 2, y, { align: 'center' }); y += 5;
+      doc.text('Tipo: Convencional / Normal', pageWidth / 2, y, { align: 'center' }); y += 5;
+      doc.text(
+        `Valor: ${bookingData.total_price.toLocaleString('pt-AO', { minimumFractionDigits: 2 })} kz`,
+        pageWidth / 2,
+        y,
+        { align: 'center' }
+      ); y += 5;
 
-      const selectedSeatsDisplay = displaySelectedSeats(bookingData.selected_seats);
-      doc.text(selectedSeatsDisplay, pageWidth / 2, 65, { align: 'center' });
+      doc.text(displaySelectedSeats(bookingData.selected_seats), pageWidth / 2, y, { align: 'center' }); y += 5;
+      doc.text(`Nome cliente: ${passenger.name}`, pageWidth / 2, y, { align: 'center' }); y += 5;
+      doc.text(`Idade: ${passenger.age}`, pageWidth / 2, y, { align: 'center' }); y += 5;
+      doc.text(`Sexo: ${passenger.sex === 'M' ? 'Masculino' : 'Feminina'}`, pageWidth / 2, y, { align: 'center' }); y += 5;
+      doc.text(`Telefone: ${bookingData.contact_phone || 'N/A'}`, pageWidth / 2, y, { align: 'center' }); y += 10;
 
-      doc.text(`Nome cliente: ${passenger.name}`, pageWidth / 2, 70, { align: 'center' });
-      doc.text(`Idade: ${passenger.age}`, pageWidth / 2, 75, { align: 'center' });
-      doc.text(`Sexo: ${passenger.sex === 'M' ? 'Masculino' : 'Feminina'}`, pageWidth / 2, 80, { align: 'center' });
-      doc.text(`Telefone: ${bookingData.contact_phone || 'N/A'}`, pageWidth / 2, 85, { align: 'center' });
-
-      // QR code data
+      // QR Code
       const qrCodeData = JSON.stringify({
         bookingId,
         ticketId: passenger.ticketId,
@@ -140,44 +150,40 @@ const generatePassengerTickets = async (bookingId) => {
         margin: 1,
       });
 
-      doc.addImage(qrCodeUrl, 'PNG', pageWidth / 2 - 20, 95, 40, 40, '', 'FAST');
+      doc.addImage(qrCodeUrl, 'PNG', pageWidth / 2 - 20, y, 40, 40, '', 'FAST');
+      y += 45;
 
-      // Additional info
+      // Additional Info (less space before footer)
       const additionalInfo = [
         'Isentos nos termos da linha do numer 1 do artigo 12. do civa qtvl-processado por programa valido N31.1/AGT/2022',
         'O passageiro tem direito a uma mala.',
         'Hóraria de atendimento para subsituição do bilhete de passagem esta disponivel das 09h- 21h.',
         'Guarda seu bilhete de passagens.',
-        'WhatsApp 934937545.',
+        'WhatsApp 952995798.',
         'Faça seu checkin 1h antes da partida.',
         'Não assumimos estravios do bilhete e não emitimos segunda.',
       ];
 
       doc.setFontSize(6);
-      additionalInfo.forEach((line, lineIndex) => {
-        doc.text(line, pageWidth / 2, 140 + lineIndex * 5, { align: 'center', maxWidth: pageWidth - 10 });
+      additionalInfo.forEach((line) => {
+        doc.text(line, pageWidth / 2, y, { align: 'center', maxWidth: pageWidth - 10 });
+        y += 4; // Reduced line spacing
       });
 
-      // Footer
+      // Footer immediately after additionalInfo
       doc.setFontSize(8);
-      doc.text('Muito obrigado, Volte sempre', pageWidth / 2, 220, { align: 'center' });
-      doc.text('-----100 Destinos-----', pageWidth / 2, 225, { align: 'center' });
+      doc.text('Muito obrigado, Volte sempre', pageWidth / 2, y + 5, { align: 'center' });
+      doc.text('-----100 Destinos-----', pageWidth / 2, y + 10, { align: 'center' });
 
       if (index === updatedPassengers.length - 1) {
         doc.save(`Bilhete_${bookingId}_${dateId}.pdf`);
       }
     }
 
-    // Update booking passengers with ticketIds
-    const { error: updateError } = await supabase
+    await supabase
       .from('bookings')
-      .update({ passengers: updatedPassengers }) // Store as a proper JSON object
+      .update({ passengers: updatedPassengers })
       .eq('id', bookingId);
-
-    if (updateError) {
-      console.error('Error updating booking with ticketIds:', updateError);
-      throw updateError;
-    }
   } catch (error) {
     console.error('Error generating passenger ticket:', error);
     throw error;
