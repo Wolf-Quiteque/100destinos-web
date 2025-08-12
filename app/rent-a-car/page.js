@@ -34,6 +34,7 @@ export default function RentACar() {
     const [filteredCarData, setFilteredCarData] = useState([]); // State for filtered cars
     const [showSearchResults, setShowSearchResults] = useState(false); // New state to control view
     const [currentAdIndex, setCurrentAdIndex] = useState(0); // New state for ad slideshow
+    const [adImages, setAdImages] = useState([]);
 
     const carData = [
         {"model": "HYUNDAI I10", "price": "50.000 kz", "info": "Preço por Dia", img:"/rent-a-car/hyundai-10.png"},
@@ -53,25 +54,32 @@ export default function RentACar() {
         numericPrice: parseFloat(car.price.replace('.', '').replace(',', '.')) // Convert "50.000 kz" to 50000
     }));
 
-    const adImages = [
-        '/ads/1.jpeg',
-        '/ads/2.jpg',
-        '/ads/3.jpeg',
-        '/ads/5.jpeg',
-        '/ads/6.webp',
-    ];
-
     useEffect(() => {
         // Initialize filteredCarData with all cars when component mounts
         setFilteredCarData(carData);
     }, []);
 
+    // Fetch announcements from Supabase
+    useEffect(() => {
+        const fetchAnuncios = async () => {
+            const { data, error } = await supabase.from('anuncios').select('image_url');
+            if (error) {
+                console.error('Error fetching anuncios:', error);
+            } else {
+                setAdImages(data.map(ad => ad.image_url));
+            }
+        };
+        fetchAnuncios();
+    }, [supabase]);
+
     // Ad slideshow effect
     useEffect(() => {
-        const adInterval = setInterval(() => {
-            setCurrentAdIndex((prev) => (prev + 1) % adImages.length);
-        }, 4000); // Change ad every 4 seconds
-        return () => clearInterval(adInterval);
+        if (adImages.length > 0) {
+            const adInterval = setInterval(() => {
+                setCurrentAdIndex((prev) => (prev + 1) % adImages.length);
+            }, 4000); // Change ad every 4 seconds
+            return () => clearInterval(adInterval);
+        }
     }, [adImages.length]);
 
     useEffect(() => {

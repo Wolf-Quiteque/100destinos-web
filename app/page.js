@@ -40,6 +40,7 @@ export default function Home() { // Renamed to Home as per user's move
     const [returnDate, setReturnDate] = useState('');
     const [isRoundTrip, setIsRoundTrip] = useState(false);
     const [currentAdIndex, setCurrentAdIndex] = useState(0); // New state for ad slideshow
+    const [adImages, setAdImages] = useState([]);
 
     const supabase = createClientComponentClient(); // Initialize Supabase client
 
@@ -182,20 +183,27 @@ export default function Home() { // Renamed to Home as per user's move
         }
     }, [allBusRoutes, allPlaneRoutes, allTrainRoutes, allBoatRoutes, activeTab]); // Depend on all routes and activeTab
 
-    // Ad slideshow effect
-    const adImages = [
-        '/ads/1.jpeg',
-        '/ads/2.jpg',
-        '/ads/3.jpeg',
-        '/ads/5.jpeg',
-        '/ads/6.webp',
-    ];
-
+    // Fetch announcements from Supabase
     useEffect(() => {
-        const adInterval = setInterval(() => {
-            setCurrentAdIndex((prev) => (prev + 1) % adImages.length);
-        }, 4000); // Change ad every 4 seconds
-        return () => clearInterval(adInterval);
+        const fetchAnuncios = async () => {
+            const { data, error } = await supabase.from('anuncios').select('image_url');
+            if (error) {
+                console.error('Error fetching anuncios:', error);
+            } else {
+                setAdImages(data.map(ad => ad.image_url));
+            }
+        };
+        fetchAnuncios();
+    }, [supabase]);
+
+    // Ad slideshow effect
+    useEffect(() => {
+        if (adImages.length > 0) {
+            const adInterval = setInterval(() => {
+                setCurrentAdIndex((prev) => (prev + 1) % adImages.length);
+            }, 4000); // Change ad every 4 seconds
+            return () => clearInterval(adInterval);
+        }
     }, [adImages.length]);
 
     const handleTabClick = (type) => {

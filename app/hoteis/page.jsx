@@ -14,6 +14,7 @@ export default function Hoteis() {
     const { session, user: authUser } = useAuth();
     const [profile, setProfile] = useState(null);
     const [currentAdIndex, setCurrentAdIndex] = useState(0);
+    const [adImages, setAdImages] = useState([]);
     const supabase = createClientComponentClient();
     const [hotels, setHotels] = useState(hotelsData); // Initialize hotels with dummy data
     const [searchTerm, setSearchTerm] = useState('');
@@ -43,19 +44,26 @@ export default function Hoteis() {
         fetchProfile();
     }, [authUser, supabase]);
 
-     const adImages = [
-        '/ads/1.jpeg',
-        '/ads/2.jpg',
-        '/ads/3.jpeg',
-        '/ads/5.jpeg',
-        '/ads/6.webp',
-    ];
+    // Fetch announcements from Supabase
+    useEffect(() => {
+        const fetchAnuncios = async () => {
+            const { data, error } = await supabase.from('anuncios').select('image_url');
+            if (error) {
+                console.error('Error fetching anuncios:', error);
+            } else {
+                setAdImages(data.map(ad => ad.image_url));
+            }
+        };
+        fetchAnuncios();
+    }, [supabase]);
 
     useEffect(() => {
-        const adInterval = setInterval(() => {
-            setCurrentAdIndex((prev) => (prev + 1) % adImages.length);
-        }, 4000);
-        return () => clearInterval(adInterval);
+        if (adImages.length > 0) {
+            const adInterval = setInterval(() => {
+                setCurrentAdIndex((prev) => (prev + 1) % adImages.length);
+            }, 4000);
+            return () => clearInterval(adInterval);
+        }
     }, [adImages.length]);
 
     const handleSearch = (e) => {
