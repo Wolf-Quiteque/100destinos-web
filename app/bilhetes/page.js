@@ -65,7 +65,7 @@ const BilhetesClientComponent = () => {
       let query = supabase
         .from('available_routes') // Using the view
         .select('*')
-        .eq('type', type); // Filter by the new type column
+       .eq('type', type == "airplane" ? 'plane': type)
 
 
       // No 'urbano' filter for 'plane' type as per schema
